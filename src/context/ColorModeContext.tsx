@@ -13,12 +13,20 @@ const ColorModeContext = createContext<ColorModeContextValue>({
 export const useColorMode = () => useContext(ColorModeContext);
 
 export const CustomThemeProvider: FC<React.PropsWithChildren<{}>> = ({ children }) => {
-    const [mode, setMode] = useState<'light' | 'dark'>('light');
+    const [mode, setMode] = useState<'light' | 'dark'>(() => {
+        const storedMode = localStorage.getItem('color-mode'); // 로컨 스토리지에서 컬러모드에 대한 정보 들고옴.
+        return storedMode === 'dark' ? 'dark' : 'light';
+    });
+
 
     const colorMode = useMemo(
         () => ({
             toggleColorMode: () => {
-                setMode(prev => (prev === 'light' ? 'dark' : 'light'));
+                setMode((prevMode) => {
+                    const newMode = prevMode === 'light' ? 'dark' : 'light';
+                    localStorage.setItem('color-mode', newMode); // 컬러모드 로컬 스토리지 저장.
+                    return newMode;
+                });
             },
         }),
         []

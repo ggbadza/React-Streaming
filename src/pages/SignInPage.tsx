@@ -85,7 +85,7 @@ export default function SignInPage() {
         try {
             const response = await axiosClient.post("/user/login", {
                 userId: userId.value,
-                passwd: password.value
+                password: password.value
             });
 
             // 로그인 성공 처리

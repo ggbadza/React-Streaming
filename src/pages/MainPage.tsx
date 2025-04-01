@@ -1,6 +1,4 @@
 import React, { FC, PropsWithChildren } from 'react';
-import Header from '../components/layouts/Header';
-import Sidebar from '../components/layouts/Sidebar';
 import Box from "@mui/material/Box";
 
 const MainPage: FC<PropsWithChildren<{}>> = () => {
@@ -12,8 +10,6 @@ const MainPage: FC<PropsWithChildren<{}>> = () => {
                 bgcolor: "background.default",
             }}
         >
-            <Header />
-            <Sidebar />
         </Box>
     );
 };

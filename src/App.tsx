@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import SignInPage from './pages/SignInPage.tsx';
 import SignUpPage from './pages/SignUpPage.tsx';
@@ -7,6 +7,7 @@ import AnimationPage from './pages/AnimationPage.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { CustomThemeProvider } from './context/ColorModeContext';
 import CssBaseline from '@mui/material/CssBaseline';
+import MainLayout from "./components/layouts/MainLayout.tsx";
 
 function App() {
     return (
@@ -18,9 +19,9 @@ function App() {
                     <Route path="/signup" element={<SignUpPage />} />
 
                     {/*AuthProvider 공유(인증된 사용자만 접근 가능)*/}
-                    <Route element={<AuthProvider> <Outlet /> </AuthProvider> }>
+                    <Route element={<AuthProvider> <MainLayout /> </AuthProvider> }>
                         <Route path="/main" element={<MainPage />} />
-                        <Route path="/ani" element={<AnimationPage />} />
+                        <Route path="/anime" element={<AnimationPage />} />
                     </Route>
                 </Routes>
             </CustomThemeProvider>

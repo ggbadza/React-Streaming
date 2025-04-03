@@ -1,7 +1,8 @@
 // TreeView.tsx
 import React, { useEffect, useState } from "react";
+import Box from '@mui/material/Box';
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
-import { TreeItem2 } from "@mui/x-tree-view/TreeItem2";
+import CustomTreeItem from '../CustomTreeItem';
 import { TreeFolder, fetchFolders } from "../../api/folderApi";
 
 interface TreeViewProps {
@@ -10,6 +11,9 @@ interface TreeViewProps {
 
 const getItemId = (item: TreeFolder) => item.folderId;
 const getItemLabel = (item: TreeFolder) => item.name;
+
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const TreeView: React.FC<TreeViewProps> = ({ type }) => {
     const [items, setItems] = useState<TreeFolder[]>([]);
@@ -81,6 +85,7 @@ const TreeView: React.FC<TreeViewProps> = ({ type }) => {
                     node.children.map(async child => {
                         // 자식의 children이 null인 경우에만 불러오기
                         if (child.children === null) {
+                            await delay(100);
                             try {
                                 const grandchildren = await fetchFolders(type, child.folderId);
                                 return { ...child, children: grandchildren };
@@ -102,13 +107,22 @@ const TreeView: React.FC<TreeViewProps> = ({ type }) => {
 
 
     return (
-        <RichTreeView
-            items={items}
-            slots={{ item: TreeItem2 }}
-            getItemId={getItemId}
-            getItemLabel={getItemLabel}
-            onItemExpansionToggle={handleItemExpansionToggle}
-        />
+        <Box
+            sx={{
+                textAlign: 'left',
+                minWidth: {
+                    xs: 'auto', // 모바일 및 태블릿에서는 auto 또는 원하는 기본값
+                    md: '100vh', // 데스크탑에서는 100vh 적용
+                },
+            }}>
+            <RichTreeView
+                items={items}
+                slots={{ item: CustomTreeItem }}
+                getItemId={getItemId}
+                getItemLabel={getItemLabel}
+                onItemExpansionToggle={handleItemExpansionToggle}
+            />
+        </Box>
     );
 };
 

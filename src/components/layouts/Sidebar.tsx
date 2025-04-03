@@ -184,18 +184,18 @@ const Sidebar: React.FC = () => {
                 </Box>
                 <Divider />
                 {/* 하단 플랜 정보 영역 (접이식) */}
-                <Box sx={{ p: 2, cursor: 'pointer' }} onClick={togglePlan}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="subtitle1">플랜</Typography>
-                        <Typography variant="subtitle1">{isPlanCollapsed ? '+' : '-'}</Typography>
-                    </Box>
-                    {!isPlanCollapsed && (
-                        <Box sx={{ mt: 1 }}>
-                            <Typography variant="body2">현재 사용 중인 플랜: 무료 플랜</Typography>
-                            <Typography variant="body2">업그레이드 가능</Typography>
-                        </Box>
-                    )}
-                </Box>
+                {/*<Box sx={{ p: 2, cursor: 'pointer' }} onClick={togglePlan}>*/}
+                {/*    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>*/}
+                {/*        <Typography variant="subtitle1">플랜</Typography>*/}
+                {/*        <Typography variant="subtitle1">{isPlanCollapsed ? '+' : '-'}</Typography>*/}
+                {/*    </Box>*/}
+                {/*    {!isPlanCollapsed && (*/}
+                {/*        <Box sx={{ mt: 1 }}>*/}
+                {/*            <Typography variant="body2">현재 사용 중인 플랜: 무료 플랜</Typography>*/}
+                {/*            <Typography variant="body2">업그레이드 가능</Typography>*/}
+                {/*        </Box>*/}
+                {/*    )}*/}
+                {/*</Box>*/}
             </Drawer>
         </Box>
     );

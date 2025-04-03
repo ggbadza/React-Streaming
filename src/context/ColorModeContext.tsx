@@ -36,7 +36,17 @@ export const CustomThemeProvider: FC<React.PropsWithChildren<{}>> = ({ children 
         () =>
             createTheme({
                 palette: {
-                    mode, // 'light' 또는 'dark'
+                    mode,
+                    ...(mode === 'dark' && {
+                        background: {
+                            default: '#212529',
+                            paper: '#2a2f33',
+                        },
+                        text: {
+                            primary: '#ffffff',
+                            secondary: '#dddddd',
+                        },
+                    }),
                 },
             }),
         [mode]

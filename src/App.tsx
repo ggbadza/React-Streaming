@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate  } from 'react-router-dom';
 import './App.css';
 import SignInPage from './pages/SignInPage.tsx';
 import SignUpPage from './pages/SignUpPage.tsx';
@@ -8,23 +8,29 @@ import { AuthProvider } from './context/AuthContext.tsx';
 import { CustomThemeProvider } from './context/ColorModeContext';
 import CssBaseline from '@mui/material/CssBaseline';
 import MainLayout from "./components/layouts/MainLayout.tsx";
+import { ThemeProvider } from '@mui/material/styles';
+import theme from './context/Thema.tsx';
 
 function App() {
     return (
         <BrowserRouter>
-            <CustomThemeProvider>
-                <CssBaseline />
-                <Routes>
-                    <Route path="/login" element={<SignInPage />} />
-                    <Route path="/signup" element={<SignUpPage />} />
+            <ThemeProvider theme={theme}>
+                <CustomThemeProvider>
+                    <CssBaseline />
+                    <Routes>
+                        <Route path="/login" element={<SignInPage />} />
+                        <Route path="/signup" element={<SignUpPage />} />
 
-                    {/*AuthProvider 공유(인증된 사용자만 접근 가능)*/}
-                    <Route element={<AuthProvider> <MainLayout /> </AuthProvider> }>
-                        <Route path="/main" element={<MainPage />} />
-                        <Route path="/anime" element={<AnimationPage />} />
-                    </Route>
-                </Routes>
-            </CustomThemeProvider>
+                        {/*AuthProvider 공유(인증된 사용자만 접근 가능)*/}
+                        <Route element={<AuthProvider> <MainLayout /> </AuthProvider> }>
+                            <Route path="/main" element={<MainPage />} />
+                            <Route path="/anime" element={<AnimationPage />} />
+                            {/* 등록되지 않은 모든 경로에 대해 /main으로 리다이렉트 */}
+                            <Route path="*" element={<Navigate to="/main" replace />} />
+                        </Route>
+                    </Routes>
+                </CustomThemeProvider>
+            </ThemeProvider>
         </BrowserRouter>
     );
 }

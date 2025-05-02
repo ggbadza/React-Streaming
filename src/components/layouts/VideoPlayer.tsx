@@ -123,13 +123,9 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
         <Box
             sx={{
                 textAlign: 'left',
-                width: {
-                    xs: '90vw',
-                    md: '90vw',
-                },
             }}>
             {/* VideoJS 플레이어 */}
-            <div className="video-container" style={{ width: '90%' }}>
+            <div className="video-container" style={{ width: '100%' }}>
                 <video
                     ref={videoRef}
                     className="video-js vjs-big-play-centered vjs-default-skin"

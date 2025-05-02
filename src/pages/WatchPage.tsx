@@ -9,15 +9,23 @@ export default function WatchPage() {
         <Box
             sx={{
                 position: 'absolute',
-                left: 10,
+                left: {
+                    xs: '10px',
+                    md: '5%',
+                },
                 right: 0,
-                width: '100%',
+                top: '50px',
+
+                width: {
+                    xs: '95vw',
+                    md: '90vw',
+                },
                 paddingLeft: { xs: '64px', sm: '64px' }, // 사이드바 너비만큼 패딩
                 boxSizing: 'border-box',
-                overflow: 'hidden'
+                overflow: 'hidden',
             }}
         >
-            <VideoPlayer fileId={id!} />
-        </Box>
+                <VideoPlayer fileId={id!} />
+            </Box>
     );
 }

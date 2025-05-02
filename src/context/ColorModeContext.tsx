@@ -12,10 +12,10 @@ const ColorModeContext = createContext<ColorModeContextValue>({
 
 export const useColorMode = () => useContext(ColorModeContext);
 
-export const CustomThemeProvider: FC<React.PropsWithChildren<{}>> = ({ children }) => {
+export const CustomThemeProvider: FC<React.PropsWithChildren<object>> = ({ children }) => {
     const [mode, setMode] = useState<'light' | 'dark'>(() => {
         const storedMode = localStorage.getItem('color-mode'); // 로컨 스토리지에서 컬러모드에 대한 정보 들고옴.
-        return storedMode === 'dark' ? 'dark' : 'light';
+        return storedMode === 'light' ? 'light' : 'dark';
     });
 
 

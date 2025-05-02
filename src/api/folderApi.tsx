@@ -12,7 +12,7 @@ export interface TreeFolder extends Folder {
 
 // 폴더 데이터를 불러오는 함수
 export const fetchFolders = async (type: string, folderId: string = "0"): Promise<TreeFolder[]> => {
-    const response = await axiosClient.get(`/contents/files?type=${type}&pid=${folderId}`);
+    const response = await axiosClient.get(`/folder/files?type=${type}&pid=${folderId}`);
     return response.data.map((folder: Folder) => ({
         ...folder,
         children: null,

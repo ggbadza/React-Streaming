@@ -3,5 +3,19 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "typeRoots": [
+      "src/types",
+      "node_modules/@types"
+    ],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "include": ["src/**/*"]
+  },
+  "sideEffects": [
+    "*.css",
+    "videojs-hls-quality-selector/**",      // 플러그인 코드 보존
+    "videojs-contrib-quality-levels/**"
   ]
-}
+  }

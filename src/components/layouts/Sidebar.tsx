@@ -153,7 +153,7 @@ const Sidebar: React.FC = () => {
                 </List>
                 <Divider />
                 {/* 추천 폴더 영역 */}
-                <Box sx={{ p: 2 }}>
+                <Box sx={{ p: 0 }}>
                     <Typography variant="subtitle1" sx={{ mb: 1 }}>
                         추천
                     </Typography>

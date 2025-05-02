@@ -24,7 +24,7 @@ axiosClient.interceptors.response.use(
                 await axiosClient.post("/user/reissue");
                 return axiosClient(originalRequest); // 원본 요청 재시도
             } catch (refreshError) {
-                window.location.href = "/user/login";
+                window.location.href = "/login";
             }
         }
 

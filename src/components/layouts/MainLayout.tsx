@@ -9,7 +9,7 @@ const MainLayout = () => {
         <Box
             sx={{
                 width: '100%',
-                minHeight: '100vh',
+                minHeight: '85vh',
                 bgcolor: 'background.default',
             }}
         >

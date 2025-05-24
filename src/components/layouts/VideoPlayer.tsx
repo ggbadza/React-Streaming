@@ -4,7 +4,7 @@ import "video.js/dist/video-js.css";
 import 'videojs-contrib-quality-levels';
 import 'videojs-hls-quality-selector/src/plugin';
 import Box from "@mui/material/Box";
-import Player from "video.js/dist/types/player";
+import { CustomPlayer } from "../../types/player";
 // 자막 관련 훅 임포트
 import useSubtitle from "../../hooks/useSubtitle";
 
@@ -12,9 +12,9 @@ type Props = { fileId: string };
 
 const VideoPlayer: React.FC<Props> = ({ fileId }) => {
     const videoRef = useRef<HTMLVideoElement | null>(null);
-    const playerRef = useRef<Player | null>(null);
+    const playerRef = useRef<CustomPlayer | null>(null);
     // 환경 변수에서 API URL 가져오기
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+    const API_URL = import.meta.env.VITE_API_URL;
     const videoUrl = `${API_URL}/video/hls_m3u8_master?fileId=${fileId}`;
 
     useEffect(() => {
@@ -54,7 +54,7 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
             }]
         };
 
-        const player = videojs(videoElement, options);
+        const player = videojs(videoElement, options) as CustomPlayer;
         playerRef.current = player;
 
         // 플레이어가 준비되면, HLS 품질 선택기 활성화
@@ -101,10 +101,7 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
     // 자막 훅 사용
     const { 
         subtitleMeta, 
-        isSubtitleLoaded,
-        currentLanguage,
-        setSubtitleByLanguage,
-        disableAllSubtitles 
+        isSubtitleLoaded
     } = useSubtitle({
         player: playerRef.current,
         videoElement: videoRef.current,
@@ -120,10 +117,7 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
     }, [subtitleMeta]);
 
     return (
-        <Box
-            sx={{
-                textAlign: 'left',
-            }}>
+        <Box>
             {/* VideoJS 플레이어 */}
             <div className="video-container" style={{ width: '100%' }}>
                 <video
@@ -135,16 +129,6 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
                     style={{ display: 'block', margin: '0 auto' }}
                 />
             </div>
-            
-            {/* 디버깅 정보 (개발 환경에서만 표시) */}
-            {import.meta.env.DEV && (
-                <div style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
-                    <p>File ID: {fileId} | API URL: {API_URL}</p>
-                    {subtitleMeta && (
-                        <p>자막 있음: {subtitleMeta.hasSubtitle}, 개수: {subtitleMeta.count}</p>
-                    )}
-                </div>
-            )}
         </Box>
     );
 };

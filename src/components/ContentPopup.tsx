@@ -7,26 +7,15 @@ interface ContentPopupProps {
     onClose: () => void;
     title: string;
     description: string;
-    thumbnailUrl: string;
-    releaseYear: string;
+    posterUrl: string;
+    onWatchClick: () => void;
+    // releaseYear: string;
 }
 
-const ContentPopup: React.FC<ContentPopupProps> = ({
-                                                           open,
-                                                           onClose,
-                                                           title,
-                                                           description,
-                                                           thumbnailUrl,
-                                                       }) => {
+const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, description, posterUrl, onWatchClick}) => {
     return (
         <Modal
             open={open}
-            onClose={onClose}
-            BackdropProps={{
-                style: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)', // 넷플릭스 스타일의 어두운 배경
-                },
-            }}
         >
             <Box
                 sx={{
@@ -62,8 +51,8 @@ const ContentPopup: React.FC<ContentPopupProps> = ({
                     {/* 콘텐츠 썸네일 */}
                     <CardMedia
                         component="img"
-                        height="300"
-                        image={thumbnailUrl}
+                        // height="300"
+                        image={posterUrl}
                         alt={title}
                         sx={{ objectFit: 'cover' }}
                     />
@@ -82,10 +71,9 @@ const ContentPopup: React.FC<ContentPopupProps> = ({
                             {description}
                         </Typography>
 
-                        {/* 예시: 재생 버튼 */}
                         <Box sx={{ mt: 2 }}>
-                            <Button variant="contained" color="error">
-                                재생
+                            <Button onClick={onWatchClick} variant="contained" color="error">
+                                시청하기
                             </Button>
                         </Box>
                     </CardContent>

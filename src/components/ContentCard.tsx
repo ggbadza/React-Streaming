@@ -2,24 +2,29 @@ import React from 'react';
 import { Card, CardMedia, CardContent, Typography, Box , CardActionArea } from '@mui/material';
 
 interface ContentCardProps {
-    cid: number;        // 컨텐츠 ID
-    image: string;      // 썸네일 이미지 URL
+    cardImage: string;      // 썸네일 이미지 URL
     title: string;      // 작품 제목
     type: string;       // 작품 타입 (영화, 애니 등)
-    fid: number;        // 폴더 ID
+    onClick: () => void; // 클릭 시 펑션
 }
 
-const ContentCard: React.FC<ContentCardProps> = ({ image, title, type }) => {
+const ContentCard: React.FC<ContentCardProps> = ({ cardImage, title, type, onClick }) => {
     return (
         <Card
             sx={{
-                width: 250, // 원하는 카드 너비
+                width: {
+                    xs: '30vw',
+                    sm: '25vw',
+                    md: '20vw',
+                    lg: '15vw' ,
+                },
+                height: '100%',
                 borderRadius: 1,
                 overflow: 'hidden',
                 position: 'relative',
             }}
         >
-            <CardActionArea>
+            <CardActionArea onClick={onClick}>
                 {/* 콘텐츠 타입 */}
                 {type && (
                     <Box
@@ -43,9 +48,14 @@ const ContentCard: React.FC<ContentCardProps> = ({ image, title, type }) => {
                 <CardMedia
                     component="img"
                     alt={title}
-                    image={image}
+                    image={cardImage}
                     sx={{
-                        height: 150, // 카드 높이
+                        height: {
+                            xs: '15vw',
+                            sm: '12.5vw',
+                            md: '10vw' ,
+                            lg: '7.5vw'
+                        },
                         objectFit: 'cover',
                     }}
                 />

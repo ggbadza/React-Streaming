@@ -12,11 +12,9 @@ const ContentContainer: React.FC<ContentsResponse> = ({contentsId, title, descri
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
-    const handleWatchClick = () => {
-        // 팝업 닫기
-        handleClose();
+    const handleWatchClick = (id: number) => {
         // 실제 URL 리다이렉션 (페이지 새로고침 발생)
-        window.location.href = `/watch/${contentsId}`;
+        window.location.href = `/watch/${id}`;
     };
 
     return (
@@ -39,6 +37,7 @@ const ContentContainer: React.FC<ContentsResponse> = ({contentsId, title, descri
                 description={description}
                 posterUrl={posterUrl}
                 onWatchClick={handleWatchClick}
+                contentsId={contentsId}
             />
         </Box>
     );

@@ -10,8 +10,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import MainLayout from "./components/layouts/MainLayout.tsx";
 import DramaPage from "./pages/DramaPage.tsx";
 import MoviePage from "./pages/MoviePage.tsx";
-import TestPage from "./pages/TestPage.tsx";
 import WatchPage from "./pages/WatchPage.tsx";
+import RecommendContentsPage from "./pages/RecommendContentsPage.tsx";
 
 function App() {
     return (
@@ -25,7 +25,7 @@ function App() {
                     {/*AuthProvider 공유(인증된 사용자만 접근 가능)*/}
                     <Route element={<AuthProvider> <MainLayout /> </AuthProvider> }>
                         <Route path="/main" element={<MainPage />} />
-                        <Route path="/test" element={<TestPage />} />
+                        <Route path="/test" element={<RecommendContentsPage />} />
                         <Route path="/anime" element={<AnimationPage />} />
                         <Route path="/drama" element={<DramaPage />} />
                         <Route path="/movie" element={<MoviePage />} />

@@ -32,10 +32,20 @@ export const fetchRecommendContents = async (): Promise<RecommendContentsRespons
     return response.data;
 };
 
+// 컨텐츠 데이터를 불러오는 함수
+export const fetchContentsById = async (contentsId: number): Promise<ContentsResponse> => {
+    const response = await axiosClient.get('/contents/info', {
+        params: {
+            contentsId: contentsId
+        }
+    });
+    return response.data;
+};
+
 
 // 컨텐츠 내의 파일을 불러오는 함수
 export const fetchContentsFiles = async (contentsId: number): Promise<FileInfoSummary[]> => {
-    const response = await axiosClient.get('/contents/getfiles', {
+    const response = await axiosClient.get('/contents/get_files', {
         params: {
             contentsId: contentsId
         }

@@ -24,6 +24,8 @@ const MainLayout = () => {
                 sx={{
                     flex: 1,
                     ml: sidebarWidth,
+                    mt: '60px',  // 헤더 높이만큼 상단 마진 추가
+                    p: 2,        // 내용 패딩 추가
                 }}
             >
                 <Outlet />

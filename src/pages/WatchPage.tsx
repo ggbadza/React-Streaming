@@ -14,7 +14,7 @@ export default function WatchPage() {
                     md: '5%',
                 },
                 right: 0,
-                top: '50px',
+                top: '70px',
 
                 width: {
                     xs: '80vw',

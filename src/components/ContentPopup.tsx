@@ -70,6 +70,7 @@ const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, descri
                             maxWidth: '90%',
                             boxShadow: 5,
                             my: 2,
+                            backgroundColor: 'background.paper',
                         }}
                     >
                         <IconButton
@@ -98,8 +99,8 @@ const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, descri
 
                         <CardContent
                             sx={{
-                                backgroundColor: '#141414',
-                                color: '#fff',
+                                backgroundColor: 'background.paper',
+                                color: 'text.primary',
                             }}
                         >
                             <Typography variant="h5" gutterBottom>
@@ -114,7 +115,7 @@ const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, descri
                                     에피소드
                                 </Typography>
                                 {loading && <CircularProgress size={24} />}
-                                {error && <Typography color="error">{error}</Typography>}
+                                {error && <Typography color="error.main">{error}</Typography>}
                                 {files.length > 0 && (
                                     <List>
                                         {files.map((file) => (

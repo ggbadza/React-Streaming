@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useNavigate } from "react-router-dom";
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -14,6 +15,7 @@ import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from '../components/CustomIcons';
+import axiosClient from "../api/axiosClient.ts";
 
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
@@ -58,21 +60,26 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function SignUpPage() {
+    const navigate = useNavigate();
     const [emailError, setEmailError] = React.useState(false);
     const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
     const [passwordError, setPasswordError] = React.useState(false);
     const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
     const [nameError, setNameError] = React.useState(false);
     const [nameErrorMessage, setNameErrorMessage] = React.useState('');
+    const [regCodeError, setRegCodeError] = React.useState(false);
+    const [regCodeErrorMessage, setRegCodeErrorMessage] = React.useState('');
 
     const validateInputs = () => {
-        const email = document.getElementById('userid') as HTMLInputElement;
+        const userid = document.getElementById('userid') as HTMLInputElement;
         const password = document.getElementById('password') as HTMLInputElement;
         const name = document.getElementById('nickname') as HTMLInputElement;
+        const regCode = document.getElementById('regcode') as HTMLInputElement;
+
 
         let isValid = true;
 
-        if (!email.value || password.value.length < 4) {
+        if (!userid.value || userid.value.length < 4) {
             setEmailError(true);
             setEmailErrorMessage('ID는 4자리 이상이어야 합니다.');
             isValid = false;
@@ -99,21 +106,47 @@ export default function SignUpPage() {
             setNameErrorMessage('');
         }
 
+        if (!regCode.value || regCode.value.length < 1) {
+            setRegCodeError(true);
+            setRegCodeErrorMessage('가입 코드는 필수 사항 입니다.');
+            isValid = false;
+        } else {
+            setRegCodeError(false);
+            setRegCodeErrorMessage('');
+        }
+
         return isValid;
     };
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        if (nameError || emailError || passwordError) {
-            event.preventDefault();
-            return;
-        }
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!validateInputs()) return;
+
         const data = new FormData(event.currentTarget);
-        console.log({
-            name: data.get('name'),
-            lastName: data.get('lastName'),
-            email: data.get('email'),
-            password: data.get('password'),
-        });
+
+        const userId = data.get('userid');
+        const password = data.get('password');
+        const name = data.get('nickname');
+        const regCode = data.get('regcode');
+
+        try {
+            const response = await axiosClient.post("/user/register", {
+                userId: userId,
+                userName : name,
+                password: password,
+                regCode :regCode
+            });
+
+            // 회원가입 성공 처리
+            if (response.status === 200) {
+                navigate("/"); // 리다이렉트
+            }
+        } catch (error) {
+            setRegCodeError(true);
+            setRegCodeErrorMessage("회원가입에 실패했습니다. 정보를 확인해주세요.");
+        }
+
     };
 
     return (
@@ -175,6 +208,20 @@ export default function SignUpPage() {
                             error={nameError}
                             helperText={nameErrorMessage}
                             color={nameError ? 'error' : 'primary'}
+                        />
+                    </FormControl>
+                    <FormControl>
+                        <FormLabel htmlFor="reg_code">가입 코드</FormLabel>
+                        <TextField
+                            autoComplete="가입코드"
+                            name="regcode"
+                            required
+                            fullWidth
+                            id="regcode"
+                            placeholder="가입 코드"
+                            error={regCodeError}
+                            helperText={regCodeErrorMessage}
+                            color={regCodeError ? 'error' : 'primary'}
                         />
                     </FormControl>
                     {/*<FormControlLabel*/}

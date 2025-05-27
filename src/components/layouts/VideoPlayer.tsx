@@ -42,7 +42,7 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
                     limitRenditionByPlayerDimensions: true,
                     useBandwidthFromLocalStorage: true,
                     useDevicePixelRatio: true,
-                    withCredentials: false
+                    withCredentials: true
                 },
                 nativeAudioTracks: false,
                 nativeVideoTracks: false
@@ -105,8 +105,7 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
     } = useSubtitle({
         player: playerRef.current,
         videoElement: videoRef.current,
-        fileId,
-        apiUrl: API_URL
+        fileId
     });
 
     // 자막 정보 로깅 (디버깅용)

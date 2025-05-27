@@ -1,45 +1,25 @@
 import { useEffect, useState, useRef } from 'react';
-import JASSUB from 'jassub';
-import workerUrl from 'jassub/dist/jassub-worker.js?url';
-import wasmUrl from 'jassub/dist/jassub-worker.wasm?url';
+// import JASSUB from 'jassub';
+import workerUrl from 'libass-wasm/dist/js/subtitles-octopus-worker?url';
+// import wasmUrl from 'libass-wasm/dist/js/subtitles-octopus-worker.wasm?url';
 import { CustomPlayer } from '../types/player';
-
-// 자막 메타데이터 인터페이스 정의
-export interface SubtitleInfo {
-    subtitleId: string;
-    language: string;
-}
-
-export interface SubtitleMeta {
-    hasSubtitle: string;
-    count: number;
-    subtitleList: SubtitleInfo[];
-}
-
-interface UseSubtitleProps {
-    player: CustomPlayer | null;
-    videoElement: HTMLVideoElement | null;
-    fileId: string;
-    apiUrl?: string;
-}
+import { SubtitleMeta, UseSubtitleProps, fetchSubtitleMeta } from "../api/videoApi.tsx";
+import SubtitleOctopus from "libass-wasm";
 
 /**
  * 비디오 자막 관리를 위한 커스텀 훅
  */
-const useSubtitle = ({ player, videoElement, fileId, apiUrl = 'http://127.0.0.1:8081' }: UseSubtitleProps) => {
+const useSubtitle = ({ player, videoElement, fileId }: UseSubtitleProps) => {
     const [subtitleMeta, setSubtitleMeta] = useState<SubtitleMeta | null>(null);
     const [isSubtitleLoaded, setIsSubtitleLoaded] = useState<boolean>(false);
-    const rendererRef = useRef<JASSUB | null>(null);
+    const rendererRef = useRef<SubtitleOctopus | null>(null);
 
     // 자막 메타데이터 로드
     useEffect(() => {
-        const fetchSubtitleMeta = async () => {
+        const loadSubtitleMeta = async () => {
             try {
-                const response = await fetch(`${apiUrl}/video/sub_meta?fileId=${fileId}`);
-                if (!response.ok) {
-                    throw new Error('자막 메타데이터를 불러오는데 실패했습니다.');
-                }
-                const data: SubtitleMeta = await response.json();
+                // fileId를 number로 변환하여 API 호출
+                const data = await fetchSubtitleMeta(Number(fileId));
                 setSubtitleMeta(data);
                 return data;
             } catch (error) {
@@ -49,9 +29,9 @@ const useSubtitle = ({ player, videoElement, fileId, apiUrl = 'http://127.0.0.1:
         };
 
         if (fileId) {
-            fetchSubtitleMeta();
+            loadSubtitleMeta();
         }
-    }, [fileId, apiUrl]);
+    }, [fileId]);
 
     // 자막 초기화 및 설정
     useEffect(() => {
@@ -83,15 +63,14 @@ const useSubtitle = ({ player, videoElement, fileId, apiUrl = 'http://127.0.0.1:
         }
 
         // 새 렌더러 생성
-        rendererRef.current = new JASSUB({
+        rendererRef.current = new SubtitleOctopus({
             video: videoElement,
-            subUrl: `${apiUrl}/video/subtitle?fileId=${fileId}&type=${defaultSubId}`,
+            subUrl: `${import.meta.env.VITE_API_URL}/video/subtitle?fileId=${fileId}&type=${defaultSubId}`,
             availableFonts: {
-                '맑은 고딕': `${apiUrl}/font/malgun.ttf`,
+                '맑은 고딕': `${import.meta.env.VITE_API_URL}/font/malgun.ttf`,
             },
             fallbackFont: '맑은 고딕',
-            workerUrl,
-            wasmUrl,
+            workerUrl : workerUrl,
         });
 
 
@@ -101,9 +80,9 @@ const useSubtitle = ({ player, videoElement, fileId, apiUrl = 'http://127.0.0.1:
         subtitleMeta.subtitleList.forEach((subtitle) => {
             let subtitleLabel;
             if (subtitle.subtitleId.charAt(0) === 'v') {
-                subtitleLabel=subtitle.language+'(내장)';
+                subtitleLabel = subtitle.language + '(내장)';
             } else {
-                subtitleLabel=subtitle.language;
+                subtitleLabel = subtitle.language;
             }
             const textTrack = player.addTextTrack('subtitles', subtitleLabel, subtitle.subtitleId)!;
 
@@ -119,7 +98,7 @@ const useSubtitle = ({ player, videoElement, fileId, apiUrl = 'http://127.0.0.1:
                     if (rendererRef.current) {
                         rendererRef.current.freeTrack();
                         rendererRef.current.setTrackByUrl(
-                            `${apiUrl}/video/subtitle?fileId=${fileId}&type=${textTrack.language}`
+                            `${import.meta.env.VITE_API_URL}/video/subtitle?fileId=${fileId}&type=${textTrack.language}`
                         );
                     }
                 }
@@ -127,11 +106,12 @@ const useSubtitle = ({ player, videoElement, fileId, apiUrl = 'http://127.0.0.1:
         });
 
         // 전체가 비활성화 되었을 경우(subtitleoff 한 경우)
-        player.on('texttrackchange', ()=>{
+        player.on('texttrackchange', () => {
             disableAllSubtitles(player);
         });
 
-            setIsSubtitleLoaded(true);
+        setIsSubtitleLoaded(true);
+
         // 정리 함수
         return () => {
             if (rendererRef.current) {
@@ -139,10 +119,9 @@ const useSubtitle = ({ player, videoElement, fileId, apiUrl = 'http://127.0.0.1:
                 rendererRef.current = null;
             }
         };
-    }, [player, videoElement, subtitleMeta, fileId, apiUrl]);
+    }, [player, videoElement, subtitleMeta, fileId]);
 
-    const disableAllSubtitles = (player:CustomPlayer) => {
-
+    const disableAllSubtitles = (player: CustomPlayer) => {
         const tracks = player.textTracks();
         const allDisabled = Array.from(tracks).every((track: TextTrack) => track.mode !== 'showing');
 
@@ -153,7 +132,6 @@ const useSubtitle = ({ player, videoElement, fileId, apiUrl = 'http://127.0.0.1:
                 rendererRef.current.freeTrack();
             }
         }
-
     };
 
     return {

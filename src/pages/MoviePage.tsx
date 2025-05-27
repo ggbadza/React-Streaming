@@ -2,6 +2,7 @@ import React from "react";
 import TreeView from "../components/layouts/TreeView.tsx";
 import {styled} from "@mui/material/styles";
 import MuiCard from "@mui/material/Card";
+import Box from "@mui/material/Box";
 
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
@@ -22,12 +23,14 @@ const Card = styled(MuiCard)(({ theme }) => ({
 
 const MoviePage: React.FC = () => {
     return (
-        <Card variant="outlined">
-            <div>
-                <h1>영화 리스트</h1>
-                <TreeView type="movie" />
-            </div>
-        </Card>
+        <Box sx={{ mt : 10, minHeight: '100vh' }}>
+            <Card variant="outlined">
+                <div>
+                    <h1>영화 리스트</h1>
+                    <TreeView type="movie" />
+                </div>
+            </Card>
+        </Box>
     );
 };
 

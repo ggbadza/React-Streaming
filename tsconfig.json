@@ -10,8 +10,7 @@
       "node_modules/@types"
     ],
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "include": ["src/**/*"]
+    "allowSyntheticDefaultImports": true
   },
   "sideEffects": [
     "*.css",

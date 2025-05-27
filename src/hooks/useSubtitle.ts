@@ -39,10 +39,9 @@ const useSubtitle = ({ player, videoElement, fileId }: UseSubtitleProps) => {
             return;
         }
 
-        // JASSUB 렌더러 초기화
         // 기존 렌더러가 있으면 해제
         if (rendererRef.current) {
-            rendererRef.current.destroy();
+            rendererRef.current.dispose();
             rendererRef.current = null;
         }
 
@@ -115,7 +114,12 @@ const useSubtitle = ({ player, videoElement, fileId }: UseSubtitleProps) => {
         // 정리 함수
         return () => {
             if (rendererRef.current) {
-                rendererRef.current.destroy();
+                try {
+                    rendererRef.current.dispose();
+                } catch (error) {
+                    console.warn('SubtitleOctopus dispose 오류:', error);
+                    // 오류 무시하고 계속 진행
+                }
                 rendererRef.current = null;
             }
         };

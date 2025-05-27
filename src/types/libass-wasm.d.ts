@@ -30,7 +30,6 @@ declare module "libass-wasm" {
 
     // 기본 메서드들
     dispose(): void;
-    destroy(): void;
     setTrack(content: string | ArrayBuffer): void;
     setTrackByUrl(url: string): void;
     freeTrack(): void;
@@ -48,7 +47,6 @@ declare module "libass-wasm" {
     video: HTMLVideoElement;
 
     // 상태 확인
-    isDestroyed: boolean;
     isPaused: boolean;
 
     // 폰트 관련

@@ -17,8 +17,8 @@ export default function WatchPage() {
                 top: '50px',
 
                 width: {
-                    xs: '95vw',
-                    md: '90vw',
+                    xs: '80vw',
+                    md: '80vw',
                 },
                 paddingLeft: { xs: '64px', sm: '64px' }, // 사이드바 너비만큼 패딩
                 boxSizing: 'border-box',

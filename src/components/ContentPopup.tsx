@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Box, Card, CardMedia, CardContent, Typography, IconButton, Button, CircularProgress, List, ListItem, ListItemText, Backdrop } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useContentFiles } from '../hooks/useContentsFiles.ts';
+import { useTheme } from '@mui/material/styles';
 
 interface ContentPopupProps {
     open: boolean;
@@ -15,6 +16,7 @@ interface ContentPopupProps {
 
 const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, description, posterUrl, onWatchClick, contentsId}) => {
     const { files, loading, error } = useContentFiles(open ? contentsId : null);
+    const theme = useTheme();
 
     useEffect(() => {
         if (open) {
@@ -118,13 +120,27 @@ const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, descri
                                 {error && <Typography color="error.main">{error}</Typography>}
                                 {files.length > 0 && (
                                     <List>
-                                        {files.map((file) => (
-                                            <ListItem key={file.id}>
+                                        {files.map((file, index) => ( // index를 사용하여 마지막 항목에는 경계선 제거
+                                            <ListItem
+                                                key={file.id}
+                                                sx={{
+                                                    // 마지막 항목이 아닐 경우에만 borderBottom 적용
+                                                    borderBottom: index < files.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                                                    // paddingY: 1,
+                                                }}
+                                            >
                                                 <ListItemText
                                                     primary={file.fileName}
                                                     secondary={`${file.resolution || '해상도 정보 없음'} • ${file.hasSubtitle ? '자막 있음' : '자막 없음'}`}
                                                 />
-                                                <Button onClick={() => onWatchClick(file.id)} variant="contained" color="error">
+                                                <Button onClick={() => onWatchClick(file.id)}
+                                                        variant="contained"
+                                                        color="error"
+                                                        sx={{
+                                                            width: '100px',
+                                                            height: '40px',
+                                                            flexShrink: 0,
+                                                        }}>
                                                     시청하기
                                                 </Button>
                                             </ListItem>

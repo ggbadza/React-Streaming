@@ -3,7 +3,6 @@ import { Box, Typography, IconButton } from '@mui/material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { ContentsResponse } from '../../api/contentsApi.tsx';
 import ContentContainer from './ContentContainer';
-import theme from "../../context/Thema.tsx";
 
 interface RecommendRowProps {
   description: string;
@@ -71,33 +70,65 @@ const RecommendRow: React.FC<RecommendRowProps> = ({ description, contentsList }
       const children = Array.from(container.children) as HTMLElement[];
       if (children.length === 0) return;
 
+      let gap = 0;
+
+      if (children.length >= 2) {
+          const firstChildRect = children[0].getBoundingClientRect();
+          const secondChildRect = children[1].getBoundingClientRect();
+
+          const calculatedGap = secondChildRect.left - firstChildRect.right;
+
+          gap = Math.max(0, calculatedGap);
+      }
+
       const containerRect = container.getBoundingClientRect();
       const containerLeft = containerRect.left;
       const containerRight = containerRect.right;
 
-      // 현재 보이는 첫 번째와 마지막 요소 찾기
       const visibleChildren = children.filter(child => {
           const childRect = child.getBoundingClientRect();
           return childRect.right > containerLeft && childRect.left < containerRight;
       });
-      // 보이는 개수만큼 스크롤
-      if (visibleChildren.length > 0) {
-          const firstVisible = visibleChildren[0];
-          const childWidth = firstVisible.offsetWidth;
-          const gap = 16;
-          const scrollAmount = visibleChildren.length * (childWidth + gap);
 
-          const currentScroll = container.scrollLeft;
-          const newPosition = direction === 'left'
-              ? Math.max(0, currentScroll - scrollAmount)
-              : currentScroll + scrollAmount;
 
-          container.scrollTo({
-              left: newPosition,
-              behavior: 'smooth'
-          });
+      if (visibleChildren.length == 0) return;
+
+      // --- 스크롤할 아이템 개수 결정 로직 ---
+      let numItemsToScroll = visibleChildren.length;
+
+      const lastVisibleChildInArray = visibleChildren[visibleChildren.length - 1];
+      const lastVisibleChildRect = lastVisibleChildInArray.getBoundingClientRect();
+
+      if (lastVisibleChildRect.left < containerRight && lastVisibleChildRect.right > containerRight) {
+          const childTotalWidth = lastVisibleChildInArray.offsetWidth; // 아이템의 전체 너비
+          if (childTotalWidth > 0) { // 너비가 0보다 클 때만 계산 (0으로 나누기 방지)
+              // 컨테이너 내부에 보이는 부분의 너비
+              const visibleWidthOfLastChild = containerRight - lastVisibleChildRect.left;
+              const visibilityRatio = visibleWidthOfLastChild / childTotalWidth;
+
+              // 마지막에 있는 요소의 80%를 보이는지 여부 검사
+              // 단, 최소 1개는 스크롤하도록 보장
+              if (visibilityRatio < 0.8) {
+                  numItemsToScroll = Math.max(1, visibleChildren.length - 1);
+              }
+          }
       }
 
+      const firstActuallyVisibleChild = visibleChildren[0];
+      const childWidth = firstActuallyVisibleChild.offsetWidth;
+
+      // 최종 스크롤할 양 계산
+      const scrollAmount = numItemsToScroll * (childWidth + gap);
+
+      const currentScroll = container.scrollLeft;
+      const newPosition = direction === 'left'
+          ? Math.max(0, currentScroll - scrollAmount) // 왼쪽으로 스크롤 시 0 미만으로 가지 않도록
+          : currentScroll + scrollAmount;
+
+      container.scrollTo({
+          left: newPosition,
+          behavior: 'smooth'
+      });
       // setScrollPosition(newPosition);
       // setShowLeftArrow(newPosition > 0);
       setTimeout(() => {
@@ -111,7 +142,8 @@ const RecommendRow: React.FC<RecommendRowProps> = ({ description, contentsList }
           position: 'relative',
           overflow: 'hidden',
           width: '100%',
-          maxWidth: `calc(100vw - calc(${theme.spacing(7)} + 11px))`,
+          // maxWidth: `calc(100vw - calc(${theme.spacing(7)} + 11px))`,
+          maxWidth: '100%',
           height: '100%'
       }}>
       {/* Row Title */}
@@ -133,10 +165,10 @@ const RecommendRow: React.FC<RecommendRowProps> = ({ description, contentsList }
         <IconButton
           sx={{
               position: 'absolute',
-              left: 0,
+              left: '5%',
               top: '60%',
               transform: 'translateY(-50%)',
-              zIndex: 2,
+              zIndex: 3,
               minWidth : 50,
               minHeight : 50,
               height: '4vw',
@@ -148,7 +180,11 @@ const RecommendRow: React.FC<RecommendRowProps> = ({ description, contentsList }
           onClick={() => handleScroll('left')}
           size="large"
         >
-          <ChevronLeft />
+          <ChevronLeft
+              sx={{
+                  fontSize: '3vw',  // 뷰포트 너비의 3%
+                  minFontSize: '50px',  // 최소 크기
+              }} />
         </IconButton>
       )}
 
@@ -178,7 +214,7 @@ const RecommendRow: React.FC<RecommendRowProps> = ({ description, contentsList }
                          sm: '25vw',
                          md: '20vw',
                          lg: '15vw' } }}>
-            <ContentContainer 
+            <ContentContainer
               contentsId={content.contentsId}
               title={content.title}
               description={content.description}
@@ -203,7 +239,7 @@ const RecommendRow: React.FC<RecommendRowProps> = ({ description, contentsList }
               height: '4vw',
               width: '4vw',
               transform: 'translateY(-50%)',
-              zIndex: 2,
+              zIndex: 3,
               backgroundColor: 'rgba(0, 0, 0, 0.5)',
               color: 'white',
               '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.7)' },
@@ -211,7 +247,11 @@ const RecommendRow: React.FC<RecommendRowProps> = ({ description, contentsList }
             onClick={() => handleScroll('right')}
             size="large"
           >
-          <ChevronRight />
+          <ChevronRight
+              sx={{
+                  fontSize: '3vw',  // 뷰포트 너비의 3%
+                  minFontSize: '50px',  // 최소 크기
+              }}/>
         </IconButton>
       )}
     </Box>

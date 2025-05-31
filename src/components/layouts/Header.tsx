@@ -14,16 +14,14 @@ const Header: React.FC = () => {
     const navigate = useNavigate();
     return (
         <Box sx={{
-            position: 'fixed',        // 고정 위치 추가
+            position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
             height: '60px',
-            display: 'flex',          // flexbox 레이아웃
+            display: 'flex',
             alignItems: 'center',     // 세로 중앙 정렬
             justifyContent: 'center',
-            // padding: '0 20px',        // 좌우 패딩
-            // bgcolor: 'background.paper', // 배경색 추가
             zIndex: theme.zIndex.appBar,
             // borderBottom: `1px solid ${theme.palette.divider}` // 하단 구분선
         }}>
@@ -35,7 +33,6 @@ const Header: React.FC = () => {
                     fontWeight: 600,
                     position: 'absolute',
                     textTransform: 'none',
-                    // margin: '0 auto',  // 중앙 정렬
                 }}
             >
                 TANKMILU

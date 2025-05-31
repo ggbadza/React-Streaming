@@ -8,7 +8,14 @@ import { useTheme } from '@mui/material/styles';
 const MainLayout = () => {
 
     const theme = useTheme();  // 테마 가져오기
+
     const sidebarWidth = `calc(${theme.spacing(7)} + 11px)`;
+    const headerHeight = '60px';
+
+    const contentPaddingValue = 2; // p: 2 에 해당하는 숫자 값
+    const contentPadding = theme.spacing(contentPaddingValue); // 예: '16px'
+    const totalHorizontalPadding = `calc(${contentPadding} * 2)`; // 예: '32px'
+
 
     return (
         <Box
@@ -24,8 +31,9 @@ const MainLayout = () => {
                 sx={{
                     flex: 1,
                     ml: sidebarWidth,
-                    mt: '60px',  // 헤더 높이만큼 상단 마진 추가
-                    p: 2,        // 내용 패딩 추가
+                    mt: headerHeight,
+                    p: contentPaddingValue,
+                    maxWidth: `calc(100vw - ${sidebarWidth} - ${totalHorizontalPadding})`,
                 }}
             >
                 <Outlet />

@@ -5,6 +5,8 @@ import Box from '@mui/material/Box';
 export default function WatchPage() {
     const { id } = useParams();          // id == fileId
 
+    const type = "o";
+
     return (
         <Box
             sx={{
@@ -25,7 +27,7 @@ export default function WatchPage() {
                 overflow: 'hidden',
             }}
         >
-                <VideoPlayer fileId={id!} />
+                <VideoPlayer fileId={id!} type={type} />
             </Box>
     );
 }

@@ -73,8 +73,9 @@ const RecommendContentsPage: React.FC = () => {
 
   return (
     <Box sx={{
-      width: '100%',
-      overflowY: 'hidden',
+        width: '100%',
+        maxWidth: '100%',
+        overflowX: 'hidden',
     }}>
       {recommendContents.map((recommendContent) => (
         <RecommendRow

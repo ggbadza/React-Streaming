@@ -47,17 +47,6 @@ export const CustomThemeProvider: FC<React.PropsWithChildren<object>> = ({ child
                             secondary: '#dddddd',
                         },
                     }),
-                    // 라이트 모드의 기본 배경색과 텍스트 색상을 명시적으로 설정할 수도 있습니다.
-                    // (mode === 'light' && {
-                    //    background: {
-                    //        default: '#ffffff',
-                    //        paper: '#f5f5f5',
-                    //    },
-                    //    text: {
-                    //        primary: '#000000',
-                    //        secondary: '#555555',
-                    //    },
-                    // }),
                 },
                 // 여기에 typography, components, breakpoints 등 다른 테마 설정 추가
                 typography: {
@@ -66,7 +55,7 @@ export const CustomThemeProvider: FC<React.PropsWithChildren<object>> = ({ child
                     h4: {
                         fontSize: '2rem', // 기본 크기 설정
                         '@media (min-width:600px)': {
-                            fontSize: '2.5rem', // 반응형 설정은 responsiveFontSizes가 처리하지만, 직접 지정도 가능
+                            fontSize: '2.5rem',
                         },
                     },
                 },
@@ -82,7 +71,6 @@ export const CustomThemeProvider: FC<React.PropsWithChildren<object>> = ({ child
                 },
             });
 
-            // 생성된 테마에 responsiveFontSizes 적용
             baseTheme = responsiveFontSizes(baseTheme);
 
             return baseTheme;

@@ -28,7 +28,11 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
 
         // 기존 플레이어가 있으면 제거
         if (playerRef.current) {
-            playerRef.current.dispose();
+            try {
+                playerRef.current.dispose();
+            } catch {
+                console.error("기존 플레이어가 있으면 제거중에 에러 발생")
+            }
             playerRef.current = null;
         }
 
@@ -144,7 +148,7 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
                 playerRef.current = null;
             }
         };
-    }, [fileId]);
+    }, [fileId,videoRef]);
 
     // 자막 훅 사용
     const { 

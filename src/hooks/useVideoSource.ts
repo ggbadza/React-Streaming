@@ -15,7 +15,6 @@ export interface UseVideoSourceHookProps {
 }
 
 export const useVideoSource = ({ player, fileId }: UseVideoSourceHookProps) => {
-    const playerRef = useRef<CustomPlayer | null>(null);
     const [videoInfoList, setVideoInfoList] = useState<VideoInfo[] | null>(null);
     const [currentQualityLevels, setCurrentQualityLevels] = useState<QualityLevelList | null>(null);
     const API_URL = import.meta.env.VITE_API_URL;
@@ -25,7 +24,7 @@ export const useVideoSource = ({ player, fileId }: UseVideoSourceHookProps) => {
             try {
                 // fileId를 number로 변환하여 API 호출
                 const data = await fetchVideoPlayList(Number(fileId));
-                setVideoInfoList(data);
+                if (player && !player.isDisposed()) setVideoInfoList(data);
                 console.log('비디오 메타데이터 로드 됨:', data);
                 return data;
             } catch (error) {
@@ -34,28 +33,29 @@ export const useVideoSource = ({ player, fileId }: UseVideoSourceHookProps) => {
             }
         };
 
-        if (fileId) {
+        if (fileId && player && !player.isDisposed()) {
             loadVideoMeta();
         }
-    }, [fileId]);
+    }, [fileId, player]);
 
     useEffect(() => {
         console.log("TTTT1");
-        if (!currentQualityLevels||!videoInfoList) return;
-
-        console.log("TTTT2");
-        if (playerRef.current) {
-            playerRef.current.dispose();
-            playerRef.current = null;
+        if (player && player.qualityLevels && typeof player.qualityLevels === 'function' && !player.isDisposed()) {
+            const qualityLevelsInstance = player.qualityLevels();
+            setCurrentQualityLevels(qualityLevelsInstance);
+        } else {
+            setCurrentQualityLevels(null); // 플레이어가 유효하지 않으면 초기화
         }
+    }, [player]); // 이 효과는 player 인스턴스가 변경될 때 currentQualityLevels를 업데이트함
 
+    useEffect(() => {
+        if (!player || player.isDisposed() || !currentQualityLevels || !videoInfoList) {
+            return;
+        }
 
         console.log("TTTT3");
 
         if(player) {
-            playerRef.current = player;
-
-            console.log("TTTT4");
 
             videoInfoList.forEach((item) => {
                 currentQualityLevels.addQualityLevel({
@@ -92,23 +92,8 @@ export const useVideoSource = ({ player, fileId }: UseVideoSourceHookProps) => {
                     _isEnabled: true,
                     id: item.videoType});
             })
-
-
-
         }
 
-        return () => {
-            try {
-                if (playerRef.current) {
-                    console.log('Disposing video player from hook.');
-                    playerRef.current.dispose();
-                    playerRef.current = null;
-                }
-            } catch {
-                console.log('비디오 소스 해제 중 에러 발생.')
-                playerRef.current = null;
-            }
-        };
     }, [fileId, player, videoInfoList, currentQualityLevels]);
 
     return {currentQualityLevels, setCurrentQualityLevels};

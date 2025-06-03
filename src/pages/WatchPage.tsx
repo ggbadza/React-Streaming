@@ -43,8 +43,10 @@ export default function WatchPage() {
                 setLoading(false);
             }
         };
-        fetchData();
-    }, []);
+        if (id) { // id가 있을 때만 가져오기
+            fetchData();
+        }
+    }, [id]); // 'id'를 의존성 배열에 추가
 
     const renderContentDetails = () => {
         if (loading) {

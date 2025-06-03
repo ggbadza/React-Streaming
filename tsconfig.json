@@ -10,7 +10,8 @@
       "node_modules/@types"
     ],
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "lib": ["DOM", "ESNext"]
   },
   "sideEffects": [
     "*.css",

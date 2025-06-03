@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
 import 'videojs-contrib-quality-levels';
@@ -7,15 +7,19 @@ import Box from "@mui/material/Box";
 import { CustomPlayer } from "../../types/player";
 // 자막 관련 훅 임포트
 import useSubtitle from "../../hooks/useSubtitle";
+import useVideoSource from "../../hooks/useVideoSource.ts";
 
 type Props = { fileId: string };
 
 const VideoPlayer: React.FC<Props> = ({ fileId }) => {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const playerRef = useRef<CustomPlayer | null>(null);
-    // 환경 변수에서 API URL 가져오기
     const API_URL = import.meta.env.VITE_API_URL;
-    const videoUrl = `${API_URL}/video/hls_m3u8_master?fileId=${fileId}`;
+
+    const { currentQualityLevels, setCurrentQualityLevels } = useVideoSource({
+        player: playerRef.current,
+        fileId
+    });
 
     useEffect(() => {
         // 컴포넌트가 마운트되고 videoRef가 설정된 후에만 실행
@@ -49,13 +53,29 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
             },
             liveui: true,
             sources: [{
-                src: videoUrl,
-                type: 'application/x-mpegURL'
+                src: `${API_URL}/video/filerange?fileId=${fileId}`,
+                // type: 'application/x-mpegURL'
+                type: 'video/mp4'
             }]
         };
 
         const player = videojs(videoElement, options) as CustomPlayer;
         playerRef.current = player;
+
+        player.on('play', () => {
+            const qualityLevels = player.qualityLevels();
+            console.log(`Available quality levels: ${qualityLevels.length}`);
+
+
+            player.hlsQualitySelector({
+                displayCurrentQuality: true
+            });
+
+            if(qualityLevels.length<=1){
+                setCurrentQualityLevels(qualityLevels);
+            }
+
+        });
 
         // 플레이어가 준비되면, HLS 품질 선택기 활성화
         player.on('ready', () => {
@@ -66,15 +86,20 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
             if (player.qualityLevels) {
                 console.log('Quality levels plugin detected');
 
+
+
+                // 품질 레벨 확인
+                const qualityLevels = player.qualityLevels();
+
+                setCurrentQualityLevels(qualityLevels);
+                console.log(`Available quality levels: ${qualityLevels.length}`);
+
                 player.hlsQualitySelector({
                     displayCurrentQuality: true
                 });
 
                 console.log('HLS quality selector activated');
 
-                // 품질 레벨 확인
-                const qualityLevels = player.qualityLevels();
-                console.log(`Available quality levels: ${qualityLevels.length}`);
             }
 
             player.fluid(true);
@@ -90,13 +115,36 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
             console.log('Video metadata loaded');
         });
 
+        player.on('fullscreenchange', function() {
+            if (player.isFullscreen()) {
+                // 전체화면 모드 진입 시
+                if (screen.orientation && typeof screen.orientation.lock("landscape") === 'function') {
+                    screen.orientation.lock('landscape').then(function() {
+                        console.log('화면을 가로 모드로 잠갔습니다.');
+                    }).catch(function(error) {
+                        console.error('화면 방향 잠금 실패:', error);
+                        // 사용자에게 가로 모드를 권장하는 UI를 보여줄 수도 있습니다.
+                    });
+                } else {
+                    console.warn('Screen Orientation API가 지원되지 않습니다.');
+                    // 이 경우, 사용자에게 직접 가로 모드로 전환하도록 안내 메시지를 띄울 수 있습니다.
+                }
+            } else {
+                // 전체화면 모드 해제 시
+                if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+                    screen.orientation.unlock();
+                    console.log('화면 방향 잠금을 해제했습니다.');
+                }
+            }
+        });
+
         return () => {
             if (playerRef.current) {
                 playerRef.current.dispose();
                 playerRef.current = null;
             }
         };
-    }, [fileId, videoUrl]);
+    }, [fileId]);
 
     // 자막 훅 사용
     const { 

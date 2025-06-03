@@ -3,13 +3,13 @@ import { useEffect, useState, useRef } from 'react';
 import workerUrl from 'libass-wasm/dist/js/subtitles-octopus-worker?url';
 // import wasmUrl from 'libass-wasm/dist/js/subtitles-octopus-worker.wasm?url';
 import { CustomPlayer } from '../types/player';
-import { SubtitleMeta, UseSubtitleProps, fetchSubtitleMeta } from "../api/videoApi.tsx";
+import { SubtitleMeta, UseVideoSourceProps, fetchSubtitleMeta } from "../api/videoApi.tsx";
 import SubtitleOctopus from "libass-wasm";
 
 /**
  * 비디오 자막 관리를 위한 커스텀 훅
  */
-const useSubtitle = ({ player, videoElement, fileId }: UseSubtitleProps) => {
+const useSubtitle = ({ player, videoElement, fileId }: UseVideoSourceProps) => {
     const [subtitleMeta, setSubtitleMeta] = useState<SubtitleMeta | null>(null);
     const [isSubtitleLoaded, setIsSubtitleLoaded] = useState<boolean>(false);
     const rendererRef = useRef<SubtitleOctopus | null>(null);

@@ -108,12 +108,13 @@ const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, descri
                             <Typography variant="h5" gutterBottom>
                                 {title}
                             </Typography>
-                            <Typography variant="body2" gutterBottom>
+                            <Typography variant="body2" gutterBottom sx={{ textAlign: 'left' }}>
                                 {description}
                             </Typography>
 
-                            <Box sx={{ mt: 2 }}>
-                                <Typography variant="h6" gutterBottom>
+                            <Box sx={{ mt: 2 ,
+                                        }}>
+                                <Typography variant="h6" gutterBottom sx={{borderTop : `2px solid ${theme.palette.divider}`, mt: 2, pt: 1}}>
                                     에피소드
                                 </Typography>
                                 {loading && <CircularProgress size={24} />}

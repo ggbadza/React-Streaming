@@ -35,7 +35,14 @@ const Header: React.FC = () => {
                     textTransform: 'none',
                 }}
             >
-                TANKMILU
+                <text
+                    fontFamily="맑은 고딕" // 사용할 폰트 지정
+                    fontSize="20" // 폰트 크기 지정
+                    font-weight="bold"
+                    fill="#FFFFFF" // 글자 색상 지정
+                >
+                    TankMilU
+                </text>
             </Button>
             <IconButton
                 onClick={toggleColorMode}

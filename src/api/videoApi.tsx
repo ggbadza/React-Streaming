@@ -14,7 +14,15 @@ export interface SubtitleMeta {
     subtitleList: SubtitleInfo[];
 }
 
-export interface UseSubtitleProps {
+export interface VideoInfo {
+    videoType: string,
+    url: string,
+    pixel: string,
+    fileId: number,
+    mimeType: string,
+}
+
+export interface UseVideoSourceProps {
     player: CustomPlayer | null;
     videoElement: HTMLVideoElement | null;
     fileId: string;
@@ -26,3 +34,7 @@ export const fetchSubtitleMeta = async (fileId: number): Promise<SubtitleMeta> =
     return response.data;
 };
 
+export const fetchVideoPlayList = async (fileId: number): Promise<VideoInfo[]> => {
+    const response = await axiosClient.get(`/video/playlist?fileId=${fileId}`);
+    return response.data;
+};

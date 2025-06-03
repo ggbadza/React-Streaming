@@ -66,6 +66,7 @@ export default function SignInPage() {
     const [passwordError, setPasswordError] = React.useState(false);
     const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
     const [open, setOpen] = React.useState(false);
+    const [rememberMeChecked, setRememberMeChecked] = React.useState(false);
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -81,11 +82,13 @@ export default function SignInPage() {
         if (!validateInputs()) return;
         const userId = document.getElementById('userId') as HTMLInputElement;
         const password = document.getElementById('password') as HTMLInputElement;
+        const rememberMeValue = rememberMeChecked ? "Y" : "N"; // 이 부분 추가
 
         try {
             const response = await axiosClient.post("/user/login", {
                 userId: userId.value,
-                password: password.value
+                password: password.value,
+                rememberMe: rememberMeValue
             });
 
             // 로그인 성공 처리
@@ -182,7 +185,14 @@ export default function SignInPage() {
                         />
                     </FormControl>
                     <FormControlLabel
-                        control={<Checkbox value="remember" color="primary"/>}
+                        control={
+                            <Checkbox
+                                value="rememberMe"
+                                color="primary"
+                                checked={rememberMeChecked}
+                                onChange={(event) => setRememberMeChecked(event.target.checked)}
+                            />
+                        }
                         label="자동 로그인"
                     />
                     <ForgotPassword open={open} handleClose={handleClose}/>

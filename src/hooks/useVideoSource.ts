@@ -5,7 +5,7 @@ import 'video.js/dist/video-js.css';
 import 'videojs-contrib-quality-levels';
 import 'videojs-hls-quality-selector/src/plugin';
 import { CustomPlayer } from '../types/player';
-import {fetchVideoPlayList, VideoInfo, UseVideoSourceProps} from "../api/videoApi.tsx";
+import {fetchVideoPlayList, VideoInfo} from "../api/videoApi.tsx";
 import QualityLevelList from "videojs-contrib-quality-levels/dist/types/quality-level-list";
 
 // 이 훅에서 사용할 Props 정의

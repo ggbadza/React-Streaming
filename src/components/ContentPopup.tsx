@@ -38,7 +38,7 @@ const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, descri
                 open={open}
                 onClick={onClose}
                 sx={{
-                    zIndex: 1300,
+                    zIndex: 1400,
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 }}
             />
@@ -50,7 +50,7 @@ const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, descri
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    zIndex: 1301,
+                    zIndex: 1401,
                     overflowY: 'auto',
                 }}
                 onClick={onClose}
@@ -114,7 +114,7 @@ const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, descri
 
                             <Box sx={{ mt: 2 ,
                                         }}>
-                                <Typography variant="h6" gutterBottom sx={{borderTop : `2px solid ${theme.palette.divider}`, mt: 2, pt: 1}}>
+                                <Typography variant="h6" gutterBottom sx={{textAlign : 'center', borderTop : `2px solid ${theme.palette.divider}`, mt: 2, pt: 1}}>
                                     에피소드
                                 </Typography>
                                 {loading && <CircularProgress size={24} />}

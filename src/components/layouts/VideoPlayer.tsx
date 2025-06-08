@@ -15,10 +15,18 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const playerRef = useRef<CustomPlayer | null>(null);
     const API_URL = import.meta.env.VITE_API_URL;
+    const [isPlayerReadyForSubtitle, setIsPlayerReadyForSubtitle] = useState(false);
 
-    const { currentQualityLevels, setCurrentQualityLevels } = useVideoSource({
+    useVideoSource({
         player: playerRef.current,
         fileId
+    });
+
+    useSubtitle({
+        player: playerRef.current,
+        videoElement: videoRef.current,
+        fileId,
+        isReady: isPlayerReadyForSubtitle
     });
 
     useEffect(() => {
@@ -35,6 +43,9 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
             }
             playerRef.current = null;
         }
+
+        //  플레이어 변경 시 자막 준비 상태 초기화
+        setIsPlayerReadyForSubtitle(false);
 
         const options = {
             autoplay: false,
@@ -58,69 +69,61 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
             liveui: true,
             sources: [{
                 src: `${API_URL}/video/filerange?fileId=${fileId}`,
-                // type: 'application/x-mpegURL'
                 type: 'video/mp4'
             }]
         };
 
-        const player = videojs(videoElement, options) as CustomPlayer;
-        playerRef.current = player;
+        const newPlayerInstance = videojs(videoElement, options) as CustomPlayer;
+        playerRef.current = newPlayerInstance;
 
-        player.on('play', () => {
-            const qualityLevels = player.qualityLevels();
+        newPlayerInstance.on('play', () => {
+            const qualityLevels = newPlayerInstance.qualityLevels();
             console.log(`Available quality levels: ${qualityLevels.length}`);
 
 
-            player.hlsQualitySelector({
-                displayCurrentQuality: true
-            });
-
-            if(qualityLevels.length<=1){
-                setCurrentQualityLevels(qualityLevels);
+            if (newPlayerInstance.hlsQualitySelector) {
+                newPlayerInstance.hlsQualitySelector({
+                    displayCurrentQuality: true
+                });
             }
-
         });
 
         // 플레이어가 준비되면, HLS 품질 선택기 활성화
-        player.on('ready', () => {
-            console.log('Player is ready');
-            console.log('Current source:', player.currentSrc());
-            
-            // videojs-quality-levels 플러그인이 제대로 로드되었는지 확인
-            if (player.qualityLevels) {
-                console.log('Quality levels plugin detected');
-
-
-
-                // 품질 레벨 확인
-                const qualityLevels = player.qualityLevels();
-
-                setCurrentQualityLevels(qualityLevels);
-                console.log(`Available quality levels: ${qualityLevels.length}`);
-
-                player.hlsQualitySelector({
-                    displayCurrentQuality: true
-                });
-
-                console.log('HLS quality selector activated');
-
+        newPlayerInstance.on('ready', () => {
+            console.log('Player is ready, 자막 초기화 준비됨.');
+            //  현재 활성화된 플레이어 인스턴스와 일치할 때만 상태 업데이트
+            if (playerRef.current === newPlayerInstance && !newPlayerInstance.isDisposed()) {
+                setIsPlayerReadyForSubtitle(true);
             }
 
-            player.fluid(true);
+            if (newPlayerInstance.qualityLevels) {
+                console.log('Quality levels plugin detected');
+                const qualityLevels = newPlayerInstance.qualityLevels();
+                // setCurrentQualityLevels(qualityLevels); // useVideoSource 훅으로 로직 이동 가능성
+                console.log(`Available quality levels: ${qualityLevels.length}`);
+
+                if (newPlayerInstance.hlsQualitySelector) {
+                    newPlayerInstance.hlsQualitySelector({
+                        displayCurrentQuality: true
+                    });
+                }
+                console.log('HLS quality selector activated');
+            }
+            newPlayerInstance.fluid(true);
         });
 
         // 오류 이벤트 리스닝
-        player.on('error', () => {
-            console.error('Video error:', player.error());
+        newPlayerInstance.on('error', () => {
+            console.error('Video error:', newPlayerInstance.error());
         });
 
         // 메타데이터 로딩 이벤트
-        player.on('loadedmetadata', () => {
+        newPlayerInstance.on('loadedmetadata', () => {
             console.log('Video metadata loaded');
         });
 
-        player.on('fullscreenchange', function() {
-            if (player.isFullscreen()) {
+        newPlayerInstance.on('fullscreenchange', function() {
+            if (newPlayerInstance.isFullscreen()) {
                 // 전체화면 모드 진입 시
                 if (screen.orientation && typeof screen.orientation.lock("landscape") === 'function') {
                     screen.orientation.lock('landscape').then(function() {
@@ -143,29 +146,17 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
         });
 
         return () => {
-            if (playerRef.current) {
-                playerRef.current.dispose();
-                playerRef.current = null;
+            if (newPlayerInstance && !newPlayerInstance.isDisposed()) {
+            try {
+                newPlayerInstance.dispose();
+            } catch (e) {
+                console.error("정리 중 플레이어 해제 오류:", e);
             }
-        };
-    }, [fileId,videoRef]);
-
-    // 자막 훅 사용
-    const { 
-        subtitleMeta, 
-        isSubtitleLoaded
-    } = useSubtitle({
-        player: playerRef.current,
-        videoElement: videoRef.current,
-        fileId
-    });
-
-    // 자막 정보 로깅 (디버깅용)
-    useEffect(() => {
-        if (subtitleMeta) {
-            console.log('자막 메타데이터 로드됨:', subtitleMeta);
         }
-    }, [subtitleMeta]);
+            playerRef.current = null;
+            setIsPlayerReadyForSubtitle(false);
+        };
+    }, [fileId]);
 
     return (
         <Box>

@@ -6,10 +6,12 @@ import { CustomPlayer } from '../types/player';
 import { SubtitleMeta, UseVideoSourceProps, fetchSubtitleMeta } from "../api/videoApi.tsx";
 import SubtitleOctopus from "libass-wasm";
 
+
+
 /**
  * 비디오 자막 관리를 위한 커스텀 훅
  */
-const useSubtitle = ({ player, videoElement, fileId }: UseVideoSourceProps) => {
+const useSubtitle = ({ player, videoElement, fileId, isReady }: UseVideoSourceProps) => {
     const [subtitleMeta, setSubtitleMeta] = useState<SubtitleMeta | null>(null);
     const [isSubtitleLoaded, setIsSubtitleLoaded] = useState<boolean>(false);
     const rendererRef = useRef<SubtitleOctopus | null>(null);
@@ -35,7 +37,7 @@ const useSubtitle = ({ player, videoElement, fileId }: UseVideoSourceProps) => {
 
     // 자막 초기화 및 설정
     useEffect(() => {
-        if (!player || !videoElement || !subtitleMeta || !subtitleMeta.hasSubtitle || subtitleMeta.count <= 0) {
+        if (!isReady || !player || !videoElement || !subtitleMeta || !subtitleMeta.hasSubtitle || subtitleMeta.count <= 0) {
             return;
         }
 
@@ -66,9 +68,9 @@ const useSubtitle = ({ player, videoElement, fileId }: UseVideoSourceProps) => {
             video: videoElement,
             subUrl: `${import.meta.env.VITE_API_URL}/video/subtitle?fileId=${fileId}&type=${defaultSubId}`,
             availableFonts: {
-                '맑은 고딕': `${import.meta.env.VITE_API_URL}/font/malgun.ttf`,
+                // '맑은 고딕': `${import.meta.env.VITE_API_URL}/font/malgun.ttf`,
             },
-            fallbackFont: '맑은 고딕',
+            fallbackFont: `${import.meta.env.VITE_API_URL}/font/NanumGothic.otf`,
             workerUrl : workerUrl,
         });
 
@@ -123,7 +125,7 @@ const useSubtitle = ({ player, videoElement, fileId }: UseVideoSourceProps) => {
                 rendererRef.current = null;
             }
         };
-    }, [player, videoElement, subtitleMeta, fileId]);
+    }, [player, videoElement, subtitleMeta, fileId, isReady]);
 
     const disableAllSubtitles = (player: CustomPlayer) => {
         const tracks = player.textTracks();

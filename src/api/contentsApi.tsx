@@ -36,6 +36,15 @@ export interface ContentsInfoWithFiles {
     filesInfoList: FileInfoSummary[];
 }
 
+export interface ContentsSearchResult {
+     contentsId: number;
+     title: string;
+     description: string;
+     type: string;
+     thumbnailUrl: string;
+     modifiedAt: string;
+}
+
 // 추천 컨텐츠 데이터를 불러오는 함수
 export const fetchRecommendContents = async (): Promise<RecommendContentsResponse[]> => {
     const response = await axiosClient.get('/contents/recommend');
@@ -69,6 +78,14 @@ export const fetchContentsAndFilesByFileId = async (fileId: number): Promise<Con
         params: {
             fileId: fileId
         }
+    });
+    return response.data;
+};
+
+export const fetchSearchResults = async (query: string): Promise<ContentsSearchResult[]> => {
+    console.log(`API 호출: "${query}"`);
+    const response = await axiosClient.post(`/contents/search`, {
+        query: query
     });
     return response.data;
 };

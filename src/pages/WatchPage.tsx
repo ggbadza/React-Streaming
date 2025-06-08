@@ -127,7 +127,8 @@ export default function WatchPage() {
                         sm: '80%'},
                 }}>
                     <Box>
-                        <VideoPlayer fileId={id!} />
+                        {/*id 키값으로 DOM 신규 생성*/}
+                        <VideoPlayer key={id} fileId={id!} />
                     </Box>
                     <Box sx={{
                         mt : 2 }}>

@@ -27,6 +27,7 @@ export interface UseVideoSourceProps {
     videoElement: HTMLVideoElement | null;
     fileId: string;
     apiUrl?: string;
+    isReady: boolean;
 }
 
 export const fetchSubtitleMeta = async (fileId: number): Promise<SubtitleMeta> => {

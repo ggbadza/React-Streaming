@@ -9,7 +9,7 @@ const MainLayout = () => {
 
     const theme = useTheme();  // 테마 가져오기
 
-    const sidebarWidth = `calc(${theme.spacing(7)} + 11px)`;
+    const sidebarWidth = theme.spacing(7);
     const headerHeight = '60px';
 
     const contentPaddingValue = 2; // p: 2 에 해당하는 숫자 값
@@ -32,8 +32,11 @@ const MainLayout = () => {
                     flex: 1,
                     ml: sidebarWidth,
                     mt: headerHeight,
-                    p: contentPaddingValue,
-                    maxWidth: `calc(100vw - ${sidebarWidth} - ${totalHorizontalPadding})`,
+                    p: { sm : 0,
+                        xs : contentPaddingValue},
+                    maxWidth: {
+                        xs:`calc(100vw - ${sidebarWidth})`,
+                        sm:`calc(100vw - ${sidebarWidth} - ${totalHorizontalPadding})`,},
                 }}
             >
                 <Outlet />

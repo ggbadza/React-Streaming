@@ -12,6 +12,7 @@ import DramaPage from "./pages/DramaPage.tsx";
 import MoviePage from "./pages/MoviePage.tsx";
 import WatchPage from "./pages/WatchPage.tsx";
 import RecommendContentsPage from "./pages/RecommendContentsPage.tsx";
+import FollowingPage from "./pages/FollowingPage.tsx";
 
 function App() {
     return (
@@ -30,6 +31,7 @@ function App() {
                         <Route path="/drama" element={<DramaPage />} />
                         <Route path="/movie" element={<MoviePage />} />
                         <Route path="/watch/:id" element={<WatchPage />} />
+                        <Route path="/following" element={<FollowingPage />} />
                         {/* 등록되지 않은 모든 경로에 대해 /main으로 리다이렉트 */}
                         <Route path="*" element={<Navigate to="/main" replace />} />
                     </Route>

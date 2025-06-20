@@ -3,6 +3,9 @@ import { Box, Card, CardMedia, CardContent, Typography, IconButton, Button, Circ
 import CloseIcon from '@mui/icons-material/Close';
 import { useContentFiles } from '../hooks/useContentsFiles.ts';
 import { useTheme } from '@mui/material/styles';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import {useContentsFollowing} from "../hooks/useContentsFollowing.ts";
 
 interface ContentPopupProps {
     open: boolean;
@@ -17,6 +20,7 @@ interface ContentPopupProps {
 const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, description, posterUrl, onWatchClick, contentsId}) => {
     const { files, loading, error } = useContentFiles(open ? contentsId : null);
     const theme = useTheme();
+    const { isFollowing, followingLoading, toggleFollowing } = useContentsFollowing(open? contentsId : null);
 
     useEffect(() => {
         if (open) {
@@ -108,6 +112,26 @@ const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, descri
                             <Typography variant="h5" gutterBottom>
                                 {title}
                             </Typography>
+                            {/* 팔로잉 버튼 */}
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}> {/* mb:1 추가 */}
+                                <Button
+                                    variant="outlined" // 유튜브 저장 버튼과 유사하게 외곽선 스타일
+                                    color="secondary" // 테마의 기본 색상 사용
+                                    size="small" // 버튼 크기를 작게
+                                    // 버튼 클릭 시 toggleFollowing 함수 호출
+                                    onClick={toggleFollowing}
+                                    // API 호출 중일 때 버튼 비활성화
+                                    disabled={followingLoading}
+                                    startIcon={isFollowing ? <FavoriteIcon /> : <FavoriteBorderIcon />} // 팔로잉 유무에 따라 설정
+                                    sx={{
+                                        borderRadius: '20px', // 모서리를 둥글게
+                                        padding: '4px 10px', // 버튼 내부 패딩 조절
+                                        flexShrink: 0, // 버튼이 너무 줄어들지 않도록
+                                    }}
+                                >
+                                    팔로잉
+                                </Button>
+                            </Box>
                             <Typography variant="body2" gutterBottom sx={{ textAlign: 'left' }}>
                                 {description}
                             </Typography>

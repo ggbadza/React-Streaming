@@ -70,6 +70,10 @@ const VideoPlayer: React.FC<Props> = ({ fileId }) => {
             sources: [{
                 src: `${API_URL}/video/filerange?fileId=${fileId}`,
                 type: 'video/mp4'
+            },
+            {
+                src: `${API_URL}/video/hls_m3u8_ts?fileId=${fileId}&type=0`,
+                type: 'application/x-mpegURL' // 두 번째 소스: HLS (m3u8)
             }]
         };
 

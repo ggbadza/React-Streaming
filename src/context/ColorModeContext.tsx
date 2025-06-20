@@ -37,6 +37,18 @@ export const CustomThemeProvider: FC<React.PropsWithChildren<object>> = ({ child
             let baseTheme = createTheme({
                 palette: {
                     mode,
+                    primary: {
+                        main: '#90caf9', // 예시: light/dark 모드 모두에서 사용할 primary 색상
+                        light: '#e3f2fd',
+                        dark: '#42a5f5',
+                        contrastText: '#000000', // 대비되는 텍스트 색상
+                    },
+                    secondary: { // secondary 색상을 연한 회색 계열로 정의
+                        main: '#bdbdbd', // 중간 회색
+                        light: '#efefef', // 더 밝은 회색
+                        dark: '#8d8d8d',  // 더 어두운 회색
+                        contrastText: '#000000', // 대비되는 텍스트 색상 (밝은 회색 위에는 검정색이 좋음)
+                    },
                     ...(mode === 'dark' && {
                         background: {
                             default: '#212529',

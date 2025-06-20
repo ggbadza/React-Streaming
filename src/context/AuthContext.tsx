@@ -1,6 +1,7 @@
 // AuthContext.tsx
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axiosClient from '../api/axiosClient';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
     userId: string;
@@ -11,12 +12,14 @@ interface User {
 interface AuthContextValue {
     user: User | null;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
+    logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         // 백엔드에 "현재 유저 정보" 요청
@@ -30,8 +33,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
     }, []);
 
+    const logout = useCallback(async () => {
+        try {
+            await axiosClient.post('/user/logout');
+            setUser(null); // 클라이언트 상태 초기화
+            // localStorage.removeItem('accessToken');
+            // localStorage.removeItem('refreshToken');
+            console.log('로그아웃 성공');
+            navigate('/login');
+        } catch (error) {
+            console.error('로그아웃 실패:', error);
+            setUser(null);
+        }
+    }, [navigate]);
+
     return (
-        <AuthContext.Provider value={{ user, setUser }}>
+        <AuthContext.Provider value={{ user, setUser, logout }}>
             {children}
         </AuthContext.Provider>
     );

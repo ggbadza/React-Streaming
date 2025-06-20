@@ -11,6 +11,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -20,6 +21,10 @@ import LiveTvIcon from '@mui/icons-material/LiveTv';
 import MotionPhotosAutoIcon from '@mui/icons-material/MotionPhotosAuto';
 import TvIcon from '@mui/icons-material/Tv';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
+import {useAuth} from "../../context/AuthContext.tsx";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 const drawerWidth = 240;
 
@@ -49,6 +54,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     // 앱 바 아래 컨텐츠 배치를 위해 필요함
     ...theme.mixins.toolbar,
 }));
+
 
 // Sidebar용 Drawer 컴포넌트
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })<{ open: boolean }>(
@@ -112,7 +118,7 @@ const recommendedContents: Contents[] = [
 const Sidebar: React.FC = () => {
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
-
+    const { user, logout  } = useAuth();
     const toggleDrawer = () => {
         setOpen((prev) => !prev);
     };
@@ -162,37 +168,31 @@ const Sidebar: React.FC = () => {
                 </List>
                 <Divider />
                 {/* 추천 폴더 영역 */}
-                <Box sx={{p: 0, mt: 2 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                        팔로잉
-                    </Typography>
-                    <List>
-                        {recommendedContents.map((contents) => (
-                            <BootstrapTooltip title={contents.name} placement="right">
-                                <ListItem key={contents.id} disablePadding sx={{ display: 'block' }}>
-                                    <ListItemButton
-                                        sx={{
-                                            minHeight: 40,
-                                            justifyContent: open ? 'initial' : 'center',
-                                            px: 2.5,
-                                        }}
-                                    >
-                                        <ListItemIcon
-                                            sx={{
-                                                minWidth: 0,
-                                                mr: open ? 3 : 'auto',
-                                                justifyContent: 'center',
-                                            }}
-                                        >
-                                            <InboxIcon />
-                                        </ListItemIcon>
-                                        <ListItemText primary={contents.name} sx={{ opacity: open ? 1 : 0 }} />
-                                    </ListItemButton>
-                                </ListItem>
-                            </BootstrapTooltip>
-                        ))}
-                    </List>
-                </Box>
+                <BootstrapTooltip title={"팔로잉"} placement="right">
+                    <Box sx={{p: 0, mt: 2, mb: 1 }}>
+
+                        <ListItemButton
+                            component={Link}
+                            to={'/following'}
+                            sx={{
+                                minHeight: 48,
+                                justifyContent: open ? 'initial' : 'center',
+                                px: 2.5,
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    mr: open ? 3 : 'auto',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <FavoriteBorderIcon />
+                            </ListItemIcon>
+                            <ListItemText primary={"팔로잉"} sx={{ opacity: open ? 1 : 0 }} />
+                        </ListItemButton>
+                    </Box>
+                </BootstrapTooltip>
                 <Divider />
                 {/* 하단 플랜 정보 영역 (접이식) */}
                 {/*<Box sx={{ p: 2, cursor: 'pointer' }} onClick={togglePlan}>*/}
@@ -207,6 +207,73 @@ const Sidebar: React.FC = () => {
                 {/*        </Box>*/}
                 {/*    )}*/}
                 {/*</Box>*/}
+                <Box sx={{
+                    mt: 'auto', // 이 부분이 핵심!
+                    py: 2, // 상하 패딩 추가 (선택 사항)
+                    px: open ? 2 : 0, // 열렸을 때 패딩 추가
+                    display: 'flex', // 내부 요소 정렬을 위해 flex 컨테이너로 설정
+                    flexDirection: 'column', // 유저 이름과 로그아웃 버튼을 세로로 정렬
+                    alignItems: 'center', // 중앙정렬
+                    width: '100%', // 너비를 100%로 설정
+                }}>
+                    {/* 유저 이름 부분 */}
+                    <Typography
+                        variant="body1"
+                        sx={{
+                            mb: 1,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            textAlign: 'center' // 이 부분을 추가합니다.
+                        }}
+                    >
+                        {open && ('환영합니다')}
+                        <br /> {/* \n 대신 <br /> 태그를 사용하여 줄바꿈을 명시적으로 처리 */}
+                        {user?.userName} {open && ('님')}
+                    </Typography>
+
+                    {/* 로그아웃 버튼 부분 */}
+
+                    <BootstrapTooltip title={"로그아웃"} placement="right">
+                        <Button
+                            onClick={logout}
+                            color="inherit"
+                            sx={{
+                                minWidth: 40,
+                                justifyContent: open ? 'initial' : 'center',
+                                px: 2.5,
+                                display: 'flex',
+                                alignItems: 'center',
+                                width: open ? 'auto' : '100%', // 닫혔을 땐 전체 너비
+                            }}
+                        >
+                            <Box
+                                component="span"
+                                sx={{
+                                    minWidth: 0,
+                                    mr: open ? 3 : 'auto',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <LogoutIcon />
+                            </Box>
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    opacity: open ? 1 : 0,
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    display: open ? 'block' : 'none',
+                                }}
+                            >
+                                로그아웃
+                            </Typography>
+                        </Button>
+                    </BootstrapTooltip>
+                </Box>
             </Drawer>
         </Box>
     );

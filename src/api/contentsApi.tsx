@@ -89,3 +89,35 @@ export const fetchSearchResults = async (query: string): Promise<ContentsSearchR
     });
     return response.data;
 };
+
+export const fetchIsFollowing = async (contentsId: number): Promise<boolean> => {
+    const response = await axiosClient.get('/contents/is_following', {
+        params: {
+            contentsId: contentsId
+        }
+    });
+    return response.data;
+}
+
+export const fetchRegisterFollowing = async (contentsId: number): Promise<boolean> => {
+    const response = await axiosClient.get('/contents/register_following', {
+        params: {
+            contentsId: contentsId
+        }
+    });
+    return response.data;
+}
+
+export const fetchDeleteFollowing = async (contentsId: number): Promise<boolean> => {
+    const response = await axiosClient.get('/contents/delete_following', {
+        params: {
+            contentsId: contentsId
+        }
+    });
+    return response.data;
+}
+
+export const fetchFollowingContents = async (): Promise<ContentsResponse[]> => {
+    const response = await axiosClient.get('/contents/get_following', {});
+    return response.data;
+};

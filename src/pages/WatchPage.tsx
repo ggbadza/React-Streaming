@@ -1,10 +1,11 @@
 import {useNavigate, useParams} from 'react-router-dom';
-import VideoPlayer from '../components/layouts/VideoPlayer';
-import {useEffect, useState} from "react";
+import VideoPlayer, {VideoSource} from '../components/layouts/VideoPlayer';
+import {useEffect, useState, useMemo} from "react";
 import {ContentsInfoWithFiles, fetchContentsAndFilesByFileId, FileInfoSummary} from "../api/contentsApi.tsx";
 import {styled} from "@mui/material/styles";
 import MuiCard from "@mui/material/Card";
-import { Typography, Divider, Box, CircularProgress, Alert, List, ListItemText, ListItemButton } from '@mui/material'; // ListItemButton 추가
+import { Typography, Divider, Box, CircularProgress, Alert, List, ListItemText, ListItemButton } from '@mui/material';
+import {fetchSubtitleMeta, fetchVideoPlayList, SubtitleInfo, SubtitleMeta, VideoInfo} from "../api/videoApi.tsx"; // ListItemButton 추가
 
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
@@ -23,15 +24,17 @@ const Card = styled(MuiCard)(({ theme }) => ({
 export default function WatchPage() {
     const { id } = useParams();          // id == fileId
     const [contentsInfoWithFiles, setContentsInfoWithFiles] = useState<ContentsInfoWithFiles>();
+    const [videoInfoList, setVideoInfoList] = useState<VideoInfo[] | null>(null);
+    const [subtitleMeta, setSubtitleMeta] = useState<SubtitleMeta | null>(null);
     const [nowFileInfo, setNowFileInfo] = useState<FileInfoSummary>();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+    const API_URL = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setLoading(true);
                 const data = await fetchContentsAndFilesByFileId(Number(id));
                 setContentsInfoWithFiles(data);
                 setNowFileInfo(data.filesInfoList.find(file => file.id === Number(id)));
@@ -39,14 +42,74 @@ export default function WatchPage() {
             } catch (error) {
                 console.error('Failed to fetch contents info:', error);
                 setError('컨텐츠 정보를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+            }
+        };
+
+        const loadVideoMeta = async () => {
+            try {
+                // fileId를 number로 변환하여 API 호출
+                const videoData = await fetchVideoPlayList(Number(id));
+                setVideoInfoList(videoData);
+                console.log('비디오 메타데이터 로드 됨:', videoData);
+                return videoData;
+            } catch (error) {
+                console.error('비디오 메타데이터 로드 오류:', error);
+                return null;
+            }
+        };
+
+        const loadSubtitleMeta = async () => {
+            try {
+                // fileId를 number로 변환하여 API 호출
+                const subtitleData = await fetchSubtitleMeta(Number(id));
+                setSubtitleMeta(subtitleData);
+                return subtitleData;
+            } catch (error) {
+                console.error('자막 메타데이터 로드 오류:', error);
+                return null;
+            }
+        };
+
+        const fetchAllDataSequentially = async () => {
+            if (!id) return;
+
+            try {
+                setLoading(true);
+                setError(null);
+
+                await fetchData();
+                console.log("1. 컨텐츠 정보 로딩 완료");
+
+                await loadVideoMeta();
+                console.log("2. 비디오 정보 로딩 완료");
+
+                await loadSubtitleMeta();
+                console.log("3. 자막 정보 로딩 완료. 모든 데이터 준비 완료.");
+
+            } catch (err) {
+                console.error('데이터 로딩 중 오류 발생:', err);
+                setError('데이터를 불러오는데 실패했습니다.');
             } finally {
                 setLoading(false);
             }
         };
-        if (id) { // id가 있을 때만 가져오기
-            fetchData();
-        }
+
+        fetchAllDataSequentially();
     }, [id]); // 'id'를 의존성 배열에 추가
+
+    const sources: VideoSource[] = useMemo(() => {
+        // videoInfoList가 null이거나 비어있으면 빈 배열을 반환합니다.
+        if (!videoInfoList) {
+            return [];
+        }
+
+        // Array.map()을 사용하여 VideoInfo[]를 VideoSource[]로 변환합니다.
+        return videoInfoList.map((info) => ({
+            name: info.pixel, // 예: "hls 1080p"
+            url: API_URL+info.url,
+            type: info.mimeType,
+        }));
+    }, [videoInfoList]);
 
     const renderContentDetails = () => {
         if (loading) {
@@ -100,9 +163,6 @@ export default function WatchPage() {
     };
 
 
-
-
-
     return (
         <Box
             sx={{
@@ -127,8 +187,35 @@ export default function WatchPage() {
                         sm: '80%'},
                 }}>
                     <Box>
-                        {/*id 키값으로 DOM 신규 생성*/}
-                        <VideoPlayer key={id} fileId={id!} />
+                        {loading ? (
+                            // 로딩 중일 때 보여줄 UI
+                            // 플레이어와 비슷한 크기의 검은 박스 안에 로딩 스피너를 표시하여 레이아웃 깨짐을 방지합니다.
+                            <Box sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                width: '100%',
+                                aspectRatio: '16 / 9', // 플레이어와 비율을 맞춰줍니다.
+                                backgroundColor: 'black'
+                            }}>
+                                <CircularProgress />
+                            </Box>
+                        ) : error ? (
+                            // 에러가 발생했을 때 보여줄 UI
+                            <Box sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                width: '100%',
+                                aspectRatio: '16 / 9',
+                                backgroundColor: '#222'
+                            }}>
+                                <Alert severity="error" sx={{ width: '80%' }}>{error}</Alert>
+                            </Box>
+                        ) : (
+                            // 로딩이 끝나고 에러가 없을 때만 플레이어와 상세 정보를 렌더링
+                            <VideoPlayer key={id} fileId={id!} sources={sources} subtitleMeta={subtitleMeta!} />
+                        )}
                     </Box>
                     <Box sx={{
                         mt : 2 }}>

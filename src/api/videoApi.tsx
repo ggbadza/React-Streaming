@@ -22,13 +22,6 @@ export interface VideoInfo {
     mimeType: string,
 }
 
-export interface UseVideoSourceProps {
-    player: CustomPlayer | null;
-    videoElement: HTMLVideoElement | null;
-    fileId: string;
-    apiUrl?: string;
-    isReady: boolean;
-}
 
 export const fetchSubtitleMeta = async (fileId: number): Promise<SubtitleMeta> => {
     const response = await axiosClient.get(`/video/sub_meta?fileId=${fileId}`);

@@ -3,10 +3,16 @@ import { useEffect, useState, useRef } from 'react';
 import workerUrl from 'libass-wasm/dist/js/subtitles-octopus-worker?url';
 // import wasmUrl from 'libass-wasm/dist/js/subtitles-octopus-worker.wasm?url';
 import { CustomPlayer } from '../types/player';
-import { SubtitleMeta, UseVideoSourceProps, fetchSubtitleMeta } from "../api/videoApi.tsx";
+import { SubtitleMeta, fetchSubtitleMeta } from "../api/videoApi.tsx";
 import SubtitleOctopus from "libass-wasm";
 
-
+export interface UseVideoSourceProps {
+    player: CustomPlayer | null;
+    videoElement: HTMLVideoElement | null;
+    fileId: string;
+    apiUrl?: string;
+    isReady: boolean;
+}
 
 /**
  * 비디오 자막 관리를 위한 커스텀 훅
@@ -16,24 +22,6 @@ const useSubtitle = ({ player, videoElement, fileId, isReady }: UseVideoSourcePr
     const [isSubtitleLoaded, setIsSubtitleLoaded] = useState<boolean>(false);
     const rendererRef = useRef<SubtitleOctopus | null>(null);
 
-    // 자막 메타데이터 로드
-    useEffect(() => {
-        const loadSubtitleMeta = async () => {
-            try {
-                // fileId를 number로 변환하여 API 호출
-                const data = await fetchSubtitleMeta(Number(fileId));
-                setSubtitleMeta(data);
-                return data;
-            } catch (error) {
-                console.error('자막 메타데이터 로드 오류:', error);
-                return null;
-            }
-        };
-
-        if (fileId) {
-            loadSubtitleMeta();
-        }
-    }, [fileId]);
 
     // 자막 초기화 및 설정
     useEffect(() => {
@@ -67,9 +55,9 @@ const useSubtitle = ({ player, videoElement, fileId, isReady }: UseVideoSourcePr
         rendererRef.current = new SubtitleOctopus({
             video: videoElement,
             subUrl: `${import.meta.env.VITE_API_URL}/video/subtitle?fileId=${fileId}&type=${defaultSubId}`,
-            availableFonts: {
-                // '맑은 고딕': `${import.meta.env.VITE_API_URL}/font/malgun.ttf`,
-            },
+            // availableFonts: {
+            //     // '맑은 고딕': `${import.meta.env.VITE_API_URL}/font/malgun.ttf`,
+            // },
             fallbackFont: `${import.meta.env.VITE_API_URL}/font/NanumGothic.otf`,
             workerUrl : workerUrl,
         });

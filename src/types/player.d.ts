@@ -1,9 +1,12 @@
 // CustomPlayer 타입 정의
 
 import Player from "video.js/dist/types/player";
+import MenuButton from 'video.js/dist/types/menu/menu-button';
+import ControlBar from "video.js/dist/types/control-bar/control-bar";
 
 // CustomPlayer 확장
 export interface CustomPlayer extends Player {
+  controlBar: ControlBar;
   textTracks(): TextTrackList;
   qualityLevels(): QualityLevelList;
   hlsQualitySelector(options?: { displayCurrentQuality?: boolean }): void;
@@ -11,6 +14,10 @@ export interface CustomPlayer extends Player {
   dispose(): void;
 
   on(ready: string, param2: () => void): void;
+}
+
+export interface CustomMenuButton extends MenuButton {
+  player(): CustomPlayer;
 }
 
 // TextTrack 관련 타입

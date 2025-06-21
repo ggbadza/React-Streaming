@@ -54,6 +54,19 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.video-js .vjs-quality-selector-button .vjs-icon-placeholder {
+  /* 여기에 원하는 폰트 이름을 입력하세요. */
+  /* 여러 개를 입력하면 앞의 폰트가 없을 경우 다음 폰트를 사용합니다. */
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+  white-space: nowrap;
+  /*overflow: hidden;*/
+  /*text-overflow: ellipsis;*/
+
+  /* 필요에 따라 폰트 크기, 굵기 등 다른 스타일도 조절할 수 있습니다. */
+  font-size: 1em; /* em 단위는 부모 요소 크기에 비례하여 조절됩니다. */
+  font-weight: 500; /* 폰트 굵기 (normal, bold, 100~900) */
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

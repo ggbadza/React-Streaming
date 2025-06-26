@@ -169,7 +169,7 @@ const Sidebar: React.FC = () => {
                 <Divider />
                 {/* 추천 폴더 영역 */}
                 <BootstrapTooltip title={"팔로잉"} placement="right">
-                    <Box sx={{p: 0, mt: 2, mb: 1 }}>
+                    <Box sx={{p: 0, mt: 1, mb: 1 }}>
 
                         <ListItemButton
                             component={Link}

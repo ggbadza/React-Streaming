@@ -12,6 +12,17 @@ import SubtitleOctopus from "libass-wasm";
 import workerUrl from 'libass-wasm/dist/js/subtitles-octopus-worker?url';
 import legacyWorkerUrl from 'libass-wasm/dist/js/subtitles-octopus-worker-legacy.js?url';
 
+import { renderToString } from 'react-dom/server';
+import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import VolumeDownIcon from '@mui/icons-material/VolumeDown';
+import FastRewindIcon from '@mui/icons-material/FastRewind';
+import FastForwardIcon from '@mui/icons-material/FastForward';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
+import SpeedIcon from '@mui/icons-material/Speed';
+import SubtitlesIcon from '@mui/icons-material/Subtitles';
+
 type Props = { fileId: string };
 
 export interface VideoSource {
@@ -115,12 +126,63 @@ class QualityMenuButton extends MenuButtonClass {
     }
 }
 
+const Component = videojs.getComponent('Component');
+
+// 3. 피드백 UI를 위한 커스텀 컴포넌트 클래스 등록
+class OverlayDisplay extends Component {
+    private timeout: any;
+
+    constructor(player: CustomPlayer, options = {}) {
+        super(player, options);
+        this.timeout = null;
+    }
+
+    // 컴포넌트의 HTML 엘리먼트를 생성
+    createEl() {
+        const el = videojs.dom.createEl('div', {
+            className: 'vjs-overlay-display'
+        });
+        el.innerHTML = `<span class="icon"></span><span class="text"></span>`;
+        return el;
+    }
+
+    // 메세지을 보여주는 메소드
+    showMessage(iconHtml: string, text: string) {
+        const iconEl = this.el().querySelector('.icon') as HTMLElement;
+        const textEl = this.el().querySelector('.text') as HTMLElement;
+
+        if (iconEl) iconEl.innerHTML = iconHtml;
+        if (textEl) textEl.textContent = text;
+
+        // 이전에 설정된 timeout이 있다면 초기화
+        this.player().clearTimeout(this.timeout);
+
+        // UI를 보이도록 클래스 추가
+        this.addClass('vjs-overlay-visible');
+
+        // 1초 후에 UI를 숨김
+        this.timeout = this.player().setTimeout(() => {
+            this.hide();
+        }, 1000);
+    }
+
+    // 피드백을 숨기는 메소드
+    hide() {
+        this.removeClass('vjs-overlay-visible');
+    }
+}
+
 if (!videojs.getComponent('QualityMenuButton')) {
     videojs.registerComponent('QualityMenuButton', QualityMenuButton as never);
 }
 if (!videojs.getComponent('QualityMenuItem')) {
     videojs.registerComponent('QualityMenuItem', QualityMenuItem as never);
 }
+
+if (!videojs.getComponent('OverlayDisplay')) {
+    videojs.registerComponent('OverlayDisplay', OverlayDisplay);
+}
+
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta}) => {
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -155,6 +217,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
         // --- 1. video.js 커스텀 컴포넌트 정의 ---
         // ========================================================================
 
+        let newRate;
+        let newVolume;
+
         const options = {
             autoplay: false,
             controls: true,
@@ -162,6 +227,168 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
             fluid: true,
             aspectRatio: '16:9',
             textTrackSettings: false,
+            playbackRates: [0.2 ,0.5, 1, 1.5, 2, 3, 4],
+            userActions: {
+                hotkeys: function(this: CustomPlayer, event: {
+                    ctrlKey: boolean;
+                    which: number; preventDefault: () => void; }) {
+
+                    const overlayDisplay = this.getChild('OverlayDisplay') as OverlayDisplay;
+                    if (!overlayDisplay) return; // 피드백 컴포넌트가 없으면 아무것도 안함
+
+                    switch(event.which) {
+                    // 왼쪽 방향 키 (ArrowLeft)
+                        case 37:
+                            event.preventDefault(); // 브라우저 기본 동작 방지 (스크롤 등)
+                            // @ts-ignore
+                            this.currentTime(this.currentTime() - 10); // 현재 시간에서 10초 뒤로 이동
+                            this.focus();
+                            overlayDisplay.showMessage(renderToString(<FastRewindIcon />), '-10초');
+                            break;
+                    // 오른쪽 방향 키 (ArrowRight)
+                        case 39:
+                            event.preventDefault(); // 브라우저 기본 동작 방지 (스크롤 등)
+                            // @ts-ignore
+                            this.currentTime(this.currentTime() + 10); // 현재 시간에서 10초 앞으로 이동
+                            this.focus();
+                            overlayDisplay.showMessage(renderToString(<FastForwardIcon />), '+10초');
+                            break;
+                    // 스페이스바
+                        case 32:
+                            event.preventDefault(); // 브라우저 기본 동작 방지 (페이지 스크롤 등)
+                            if (this.paused()) { // 현재 비디오가 멈춰있다면
+                                this.play();       // 재생
+                                overlayDisplay.showMessage(renderToString(<PlayArrowIcon />), '재생');
+                            } else {             // 현재 비디오가 재생 중이라면
+                                this.pause();      // 멈춤
+                                overlayDisplay.showMessage(renderToString(<PauseIcon />), '일시정지');
+                            }
+                            this.focus();
+                            break;
+                    // F1, 엔터
+                        case 112:
+                        case 13 :
+                            event.preventDefault(); // 브라우저 기본 동작 방지
+                            if (this.isFullscreen()) {
+                                this.exitFullscreen();
+                            } else {
+                                this.requestFullscreen();
+                            }
+                            this.focus();
+                            break;
+                    // 'M'키
+                        case 77:
+                            event.preventDefault(); // 브라우저 기본 동작 방지
+                            if (!this.muted()) {
+                                this.muted(true); // 음소거 설정
+                                overlayDisplay.showMessage(renderToString(<VolumeOffIcon />), '음소거');
+                            } else{
+                                this.muted(false);
+                                overlayDisplay.showMessage(renderToString(<VolumeUpIcon />), '음소거 해제');
+                            }
+                            this.focus(); // 키 입력 후 플레이어에 다시 포커스
+                            break;
+
+                    // 'X' 키 (재생 속도 0.1 감소)
+                        case 88:
+                            event.preventDefault(); // 브라우저 기본 동작 방지
+                            // @ts-ignore
+                            newRate = this.playbackRate() - 0.1;
+                            newRate = parseFloat(newRate.toFixed(2));
+                            if (newRate < 0.1) { // 최소 속도 제한
+                                newRate = 0.1;
+                            }
+                            this.playbackRate(newRate);
+                            this.focus(); // 키 입력 후 플레이어에 다시 포커스
+                            overlayDisplay.showMessage(renderToString(<SpeedIcon />), `재생속도: ${newRate}배`);
+                            break;
+                    // 'C' 키 (재생 속도 0.1 증가)
+                        case 67:
+                            event.preventDefault(); // 브라우저 기본 동작 방지
+                            // @ts-ignore
+                            newRate = this.playbackRate() + 0.1;
+                            newRate = parseFloat(newRate.toFixed(2));
+
+                            if (newRate > 4.0) { // 최대 속도 제한
+                                newRate = 4.0;
+                            }
+                            this.playbackRate(newRate);
+                            this.focus(); // 키 입력 후 플레이어에 다시 포커스
+                            overlayDisplay.showMessage(renderToString(<SpeedIcon />), `재생속도: ${newRate}배`);
+                            break;
+                    // 위쪽 방향 키 (볼륨 0.1 증가)
+                        case 38:
+                            event.preventDefault();
+                            // @ts-ignore
+                            newVolume = this.volume() + 0.1;
+                            newVolume = parseFloat(newVolume.toFixed(2)); // 소수점 오차 방지
+                            if (newVolume > 1.0) {
+                                newVolume = 1.0;
+                            }
+                            this.volume(newVolume);
+                            // 볼륨이 0이 아니면 음소거 해제
+                            if (this.muted() && newVolume > 0) {
+                                this.muted(false);
+                            }
+                            overlayDisplay.showMessage(renderToString(<VolumeUpIcon />), `볼륨: ${Math.round(newVolume * 100)}%`);
+                            this.focus();
+                            break;
+                    // 아래쪽 방향 키 (볼륨 0.1 감소)
+                        case 40:
+                            event.preventDefault();
+                            // @ts-ignore
+                            newVolume = this.volume() - 0.1;
+                            newVolume = parseFloat(newVolume.toFixed(2)); // 소수점 오차 방지
+                            if (newVolume < 0.0) { // 최소 볼륨 제한 (0.0 = 0%)
+                                newVolume = 0.0;
+                            }
+                            this.volume(newVolume);
+                            // 볼륨이 0이 되면 음소거 설정
+                            if (newVolume === 0) {
+                                this.muted(true);
+                            }
+                            overlayDisplay.showMessage(renderToString(<VolumeDownIcon />), `볼륨: ${Math.round(newVolume * 100)}%`);
+                            this.focus();
+                            break;
+                    // ',' 키 (자막 싱크 느리게)
+                        case 188:
+                            event.preventDefault();
+                            if(rendererRef.current) {
+                                let offsetTime = 0;
+                                if (event.ctrlKey) offsetTime = 2;
+                                else offsetTime = 0.1
+                                rendererRef.current.timeOffset = parseFloat((rendererRef.current.timeOffset + offsetTime).toFixed(1));
+                                overlayDisplay.showMessage(renderToString(
+                                    <SubtitlesIcon/>), `자막 싱크: ${offsetTime}초 느리게 (${rendererRef.current?.timeOffset}초)`);
+                            }
+                            this.focus();
+                            break;
+                    // '.' 키 (자막 싱크 빠르게)
+                        case 190:
+                            event.preventDefault();
+                            if(rendererRef.current) {
+                                let offsetTime = 0;
+                                if (event.ctrlKey) offsetTime = 2;
+                                else offsetTime = 0.1
+                                rendererRef.current.timeOffset = parseFloat((rendererRef.current.timeOffset - offsetTime).toFixed(1));
+                                overlayDisplay.showMessage(renderToString(
+                                    <SubtitlesIcon/>), `자막 싱크: ${offsetTime}초 빠르게 (${rendererRef.current?.timeOffset}초)`);
+                            }
+                            this.focus();
+                            break;
+                    //  '/' 키 (자막 싱크 초기화)
+                        case 191:
+                            event.preventDefault();
+                            if(rendererRef.current) {
+                                rendererRef.current.timeOffset = 0;
+                                overlayDisplay.showMessage(renderToString(
+                                    <SubtitlesIcon/>), `자막 싱크: 기본값`);
+                            }
+                            this.focus();
+                            break;
+                    }
+                }
+            },
             html5: {
                 vhs: {
                     // overrideNative: true,
@@ -176,10 +403,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
             },
             liveui: true,
             sources: [
-                // {
-                // src: `${API_URL}/video/filerange?fileId=${fileId}`,
-                // type: 'video/mp4'
-                // },
+                {
+                src: `${API_URL}/video/filerange?fileId=${fileId}`,
+                type: 'video/mp4'
+                },
                 {
                 src: `${API_URL}/video/hls_m3u8_ts?fileId=${fileId}&type=0`,
                 type: 'application/vnd.apple.mpegurl' // 두 번째 소스: HLS (m3u8)
@@ -189,8 +416,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
         // 플레이어 인스턴스 생성
         const newPlayerInstance = videojs(videoElement, options) as CustomPlayer;
         playerRef.current = newPlayerInstance;
-
-
         // ========================================================================
         // --- 2. SubtitleOctopus 자막 컴포넌트 생성 ---
         // ========================================================================
@@ -222,17 +447,42 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
         //     });
         // }
 
+        newPlayerInstance.on('click', function() {
+            newPlayerInstance.focus(); // 클릭 시 플레이어에 포커스 부여
+        });
 
 
         // 플레이어가 준비되면, 자막 및 소스 리스트 선택 준비
         newPlayerInstance.on('ready', () => {
             console.log('Player is ready, 해상도 및 자막 초기화 준비됨.');
 
+            // 플레이어 준비 시 포커스 함 (키보드 작업 그대로 가능하게)
+            newPlayerInstance.focus();
+
+
+            // 오버레이 디스플레이 추가
+            const overlay = newPlayerInstance.addChild('OverlayDisplay', {});
+
+            // ResizeObserver를 사용하여 플레이어 크기 변경 감지
+            const playerEl = newPlayerInstance.el();
+            const resizeObserver = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    const playerWidth = entry.contentRect.width;
+                    // 플레이어 너비에 비례하여 기본 크기 계산 (값은 조절 가능)
+                    const baseSize = playerWidth / 50;
+                    // CSS 변수로 --overlay-base-size 설정
+                    (overlay.el() as HTMLElement).style.setProperty('--overlay-base-size', `${baseSize}px`);
+                }
+            });
+
+            resizeObserver.observe(playerEl);
+
+
             if (sources.length > 1) {
                 console.log('해상도 설정 준비: ',sources);
                 newPlayerInstance.controlBar.addChild('QualityMenuButton', {
                     sources: sources,
-                    initialLabel: sources[0]?.name || 'Quality'
+                    initialLabel: sources.find(source => source.url === newPlayerInstance.currentSrc())?.name || 'Quality' // 소스의 현재 url과 일치하는 소스목록의 name을 가져 옴
                 }, 11);
             }
 
@@ -260,7 +510,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
                 catch (e) {
                     console.error(e);
                 }
-            }, 1000); // 1000 밀리초 = 1초
+            }, 1000); // 1000 밀리초
 
             // 새 트랙 추가
             console.log('자막 설정 준비: ',subtitleMeta);

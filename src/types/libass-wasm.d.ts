@@ -45,6 +45,7 @@ declare module "libass-wasm" {
     canvas: HTMLCanvasElement;
     canvasParent: HTMLElement;
     video: HTMLVideoElement;
+    timeOffset: number;
 
     // 상태 확인
     isPaused: boolean;

@@ -40,3 +40,59 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Video.js 오버레이 디스플레이 스타일 (수정됨) */
+.vjs-overlay-display {
+  /* 1. 부모(video.js 컨테이너) 기준 절대 위치 */
+  position: absolute;
+  
+  /* 2. 정중앙 정렬을 위한 설정 */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* 3. 내용물(아이콘, 텍스트)을 중앙에 정렬 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  /* 4. 내용물 주변에만 배경이 생기도록 스타일링 */
+  background-color: rgba(0, 0, 0, 0.6); /* 배경색 (조금 더 진하게) */
+  color: white;
+  padding: 1.2em 1.5em; /* 내부 여백 (상하, 좌우) */
+  border-radius: 12px; /* 모서리 둥글게 */
+  min-width: 120px; /* 최소 너비 지정으로 너무 작아지는 것 방지 */
+  text-align: center;
+
+  /* 5. 클릭 이벤트가 비디오로 전달되도록 설정 */
+  pointer-events: none;
+
+  /* 6. 다른 UI 요소들 위에 표시되도록 z-index 설정 */
+  z-index: 10;
+
+  /* 7. 부드러운 등장을 위한 투명도 및 트랜지션 설정 */
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* OverlayDisplay가 보여질 때의 스타일 (vjs-overlay-visible 클래스가 추가됨) */
+.vjs-overlay-display.vjs-overlay-visible {
+  opacity: 1;
+}
+
+/* 오버레이 내부 아이콘 스타일 */
+.vjs-overlay-display .icon {
+  /* CSS 변수와 clamp() 함수를 사용하여 반응형 크기 조절 */
+  /* 최소 24px, 기본값은 변수, 최대 48px */
+  font-size: clamp(24px, calc(var(--overlay-base-size, 24) * 1.5), 48px);
+}
+
+/* 오버레이 내부 텍스트 스타일 */
+.vjs-overlay-display .text {
+  margin-top: 0.5em;
+  /* CSS 변수와 clamp() 함수를 사용하여 반응형 크기 조절 */
+  /* 최소 14px, 기본값은 변수, 최대 22px */
+  font-size: clamp(14px, var(--overlay-base-size, 16), 22px);
+  font-weight: bold;
+}

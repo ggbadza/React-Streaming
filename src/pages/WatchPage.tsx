@@ -1,18 +1,17 @@
 import {useNavigate, useParams} from 'react-router-dom';
 import VideoPlayer, {VideoSource} from '../components/layouts/VideoPlayer';
-import {useEffect, useState, useMemo} from "react";
+import {useEffect, useState, useMemo, useRef, useLayoutEffect} from "react"; // Added useRef, useLayoutEffect
 import {ContentsInfoWithFiles, fetchContentsAndFilesByFileId, FileInfoSummary} from "../api/contentsApi.tsx";
 import {styled} from "@mui/material/styles";
 import MuiCard from "@mui/material/Card";
 import { Typography, Divider, Box, CircularProgress, Alert, List, ListItemText, ListItemButton } from '@mui/material';
-import {fetchSubtitleMeta, fetchVideoPlayList, SubtitleInfo, SubtitleMeta, VideoInfo} from "../api/videoApi.tsx"; // ListItemButton 추가
+import {fetchSubtitleMeta, fetchVideoPlayList, SubtitleInfo, SubtitleMeta, VideoInfo} from "../api/videoApi.tsx";
 
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     alignSelf: 'center',
     width: '100%',
-    // padding: theme.spacing(4),
     gap: theme.spacing(2),
     margin: 'auto',
     boxShadow:
@@ -22,7 +21,9 @@ const Card = styled(MuiCard)(({ theme }) => ({
 }));
 
 export default function WatchPage() {
-    const { id } = useParams();          // id == fileId
+    const { id } = useParams();
+    const videoContainerRef = useRef<HTMLDivElement>(null); // 비디오 컨테이너
+    const [playlistMaxHeight, setPlaylistMaxHeight] = useState<string | number>('auto'); // 플레이리스트의 높이
     const [contentsInfoWithFiles, setContentsInfoWithFiles] = useState<ContentsInfoWithFiles>();
     const [videoInfoList, setVideoInfoList] = useState<VideoInfo[] | null>(null);
     const [subtitleMeta, setSubtitleMeta] = useState<SubtitleMeta | null>(null);
@@ -47,7 +48,6 @@ export default function WatchPage() {
 
         const loadVideoMeta = async () => {
             try {
-                // fileId를 number로 변환하여 API 호출
                 const videoData = await fetchVideoPlayList(Number(id));
                 setVideoInfoList(videoData);
                 console.log('비디오 메타데이터 로드 됨:', videoData);
@@ -60,7 +60,6 @@ export default function WatchPage() {
 
         const loadSubtitleMeta = async () => {
             try {
-                // fileId를 number로 변환하여 API 호출
                 const subtitleData = await fetchSubtitleMeta(Number(id));
                 setSubtitleMeta(subtitleData);
                 return subtitleData;
@@ -95,17 +94,40 @@ export default function WatchPage() {
         };
 
         fetchAllDataSequentially();
-    }, [id]); // 'id'를 의존성 배열에 추가
+    }, [id]);
+
+    useLayoutEffect(() => {
+        const videoContainer = videoContainerRef.current;
+        if (!videoContainer) return;
+
+        const resizeObserver = new ResizeObserver(() => {
+            const width = videoContainer.offsetWidth;
+            if (width > 0) {
+                const height = width * (9 / 16);
+                setPlaylistMaxHeight(height);
+            }
+        });
+
+        resizeObserver.observe(videoContainer);
+
+        // Initial calculation
+        const initialWidth = videoContainer.offsetWidth;
+        if (initialWidth > 0) {
+            const initialHeight = initialWidth * (9 / 16);
+            setPlaylistMaxHeight(initialHeight);
+        }
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [loading, error]); 
 
     const sources: VideoSource[] = useMemo(() => {
-        // videoInfoList가 null이거나 비어있으면 빈 배열을 반환합니다.
         if (!videoInfoList) {
             return [];
         }
-
-        // Array.map()을 사용하여 VideoInfo[]를 VideoSource[]로 변환합니다.
         return videoInfoList.map((info) => ({
-            name: info.pixel, // 예: "hls 1080p"
+            name: info.pixel,
             url: API_URL+info.url,
             type: info.mimeType,
         }));
@@ -113,26 +135,16 @@ export default function WatchPage() {
 
     const renderContentDetails = () => {
         if (loading) {
-            // 로딩 스피너를 해당 Box 내부에 표시 (전체 화면 아님)
             return (
-                <Box sx={{
-                    p: 2,
-                    textAlign: 'left',
-                    width: '80vw'
-                }}>
+                <Box sx={{ p: 2, textAlign: 'left', width: '80vw' }}>
                     <CircularProgress />
                 </Box>
             );
         }
 
         if (error) {
-            // 에러 메시지를 해당 Box 내부에 표시 (전체 화면 아님)
             return (
-                <Box sx={{
-                    p: 2,
-                    textAlign: 'left',
-                    width: '80vw'
-                }}>
+                <Box sx={{ p: 2, textAlign: 'left', width: '80vw' }}>
                     <Alert severity="error" sx={{ width: '100%', maxWidth: 600 }}>
                         {error}
                     </Alert>
@@ -142,11 +154,7 @@ export default function WatchPage() {
 
         if (contentsInfoWithFiles && nowFileInfo) {
             return (
-                <Box sx={{
-                    p: 2,
-                    textAlign: 'left',
-                    width: '80vw'
-                }}>
+                <Box sx={{ p: 2, textAlign: 'left', width: '80vw' }}>
                     <h2>{nowFileInfo.fileName || '제목 없음'}</h2>
                     <p>{nowFileInfo.resolution || '해상도 정보 없음'} • {nowFileInfo.hasSubtitle ? '자막 있음' : '자막 없음'}</p>
                 </Box>
@@ -157,11 +165,10 @@ export default function WatchPage() {
     };
 
     const onFileSelect = (file: FileInfoSummary) => {
-        if (file.id && file.id !== Number(id)) { // 현재 파일과 다른 경우에만 이동
+        if (file.id && file.id !== Number(id)) {
             navigate(`/watch/${file.id}`);
         }
     };
-
 
     return (
         <Box
@@ -170,38 +177,31 @@ export default function WatchPage() {
                 boxSizing: 'border-box',
                 overflow: 'hidden',
                 width: '100%',
-                display: 'flex', // flexbox를 사용하여 내부 요소를 정렬
-                justifyContent: 'flex-start', // 왼쪽으로 정렬
+                display: 'flex',
+                justifyContent: 'flex-start',
             }}>
             <Box sx={{
-                display: {
-                    xs: 'relative',
-                    sm: 'flex'},
+                display: { xs: 'relative', sm: 'flex' },
                 flexDirection: 'row',
                 width: '100%',
             }}>
                 <Box sx={{
                     display: 'relative',
-                    width: {
-                        xs: '100%',
-                        sm: '80%'},
+                    width: { xs: '100%', sm: '80%' },
                 }}>
-                    <Box>
+                    <Box ref={videoContainerRef}> {/* Ref attached here */}
                         {loading ? (
-                            // 로딩 중일 때 보여줄 UI
-                            // 플레이어와 비슷한 크기의 검은 박스 안에 로딩 스피너를 표시하여 레이아웃 깨짐을 방지합니다.
                             <Box sx={{
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
                                 width: '100%',
-                                aspectRatio: '16 / 9', // 플레이어와 비율을 맞춰줍니다.
+                                aspectRatio: '16 / 9',
                                 backgroundColor: 'black'
                             }}>
                                 <CircularProgress />
                             </Box>
                         ) : error ? (
-                            // 에러가 발생했을 때 보여줄 UI
                             <Box sx={{
                                 display: 'flex',
                                 justifyContent: 'center',
@@ -213,27 +213,25 @@ export default function WatchPage() {
                                 <Alert severity="error" sx={{ width: '80%' }}>{error}</Alert>
                             </Box>
                         ) : (
-                            // 로딩이 끝나고 에러가 없을 때만 플레이어와 상세 정보를 렌더링
                             <VideoPlayer key={id} fileId={id!} sources={sources} subtitleMeta={subtitleMeta!} />
                         )}
                     </Box>
-                    <Box sx={{
-                        mt : 2 }}>
+                    <Box sx={{ mt: 2 }}>
                         {renderContentDetails()}
                     </Box>
                 </Box>
                 {/*// ---------- 재생 목록 ---------- */}
-                <Card sx ={{
-                    width: {
-                        xs: '100%',
-                        sm: '20%'},
-                    ml :'10px',
-                    mt : '0px',
+                <Card sx={{
+                    width: { xs: '100%', sm: '20%' },
+                    ml: { xs: '0px', sm: '10px' },
+                    mt: '0px',
                     maxHeight: {
                         xs: '100%',
-                        sm: '45vw'},
-                    overflowY: 'auto'}}>
-                    <Typography variant="subtitle1" sx={{ px: 2, pt: 4 ,fontWeight: 'bold' }}>
+                        sm: playlistMaxHeight // 비디오 플레이어 세로 높이
+                    },
+                    overflowY: 'auto'
+                }}>
+                    <Typography variant="subtitle1" sx={{ px: 2, pt: 4, fontWeight: 'bold' }}>
                         {contentsInfoWithFiles && contentsInfoWithFiles.title || '-'}
                     </Typography>
                     <Divider />
@@ -243,7 +241,7 @@ export default function WatchPage() {
                         </Box>
                     )}
                     {error && !contentsInfoWithFiles && (
-                        <Alert severity="error" sx={{ m:1 }}>컨텐츠 목록을 불러올 수 없습니다.</Alert>
+                        <Alert severity="error" sx={{ m: 1 }}>컨텐츠 목록을 불러올 수 없습니다.</Alert>
                     )}
                     {contentsInfoWithFiles && contentsInfoWithFiles.filesInfoList && contentsInfoWithFiles.filesInfoList.length > 0 ? (
                         <List dense>

@@ -75,12 +75,12 @@ const Header: React.FC = () => {
                     height: '60px',
                     alignItems: 'center',
                     zIndex: theme.zIndex.appBar,
-                    paddingX: 2,
+                    paddingX: {xs:0.5, sm:3},
                 }}
             >
                 {/* 왼쪽 영역 */}
-                <Grid item xs={4.5} sm={3}>
-                    <Box sx={{display: 'flex', ml: {xs: 6, sm: 10}, alignItems: 'left'}}>
+                <Grid item xs={3} sm={3}>
+                    <Box sx={{display: 'flex', ml: {xs: 0, sm: 10}, alignItems: 'left'}}>
 
                         <Button
                             onClick={() => navigate("/main")}
@@ -104,7 +104,7 @@ const Header: React.FC = () => {
                 </Grid>
 
                 {/* 중앙 영역: TextField */}
-                <Grid item xs={6} sm={6}>
+                <Grid item xs={7.5} sm={6}>
                     <Box sx={{position: 'relative', width: {xs: '100%', sm: '60%'}, margin: '0 auto'}}>
                         <TextField
                             fullWidth

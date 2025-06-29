@@ -172,6 +172,8 @@ class OverlayDisplay extends Component {
     }
 }
 
+
+
 if (!videojs.getComponent('QualityMenuButton')) {
     videojs.registerComponent('QualityMenuButton', QualityMenuButton as never);
 }
@@ -357,9 +359,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
                                 let offsetTime = 0;
                                 if (event.ctrlKey) offsetTime = 2;
                                 else offsetTime = 0.1
-                                rendererRef.current.timeOffset = parseFloat((rendererRef.current.timeOffset + offsetTime).toFixed(1));
+                                rendererRef.current.timeOffset = parseFloat((rendererRef.current.timeOffset - offsetTime).toFixed(1));
                                 overlayDisplay.showMessage(renderToString(
-                                    <SubtitlesIcon/>), `자막 싱크: ${offsetTime}초 느리게 (${rendererRef.current?.timeOffset}초)`);
+                                    <SubtitlesIcon/>), `자막 싱크: ${offsetTime}초 느리게 (${-rendererRef.current?.timeOffset}초)`);
                             }
                             this.focus();
                             break;
@@ -370,12 +372,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
                                 let offsetTime = 0;
                                 if (event.ctrlKey) offsetTime = 2;
                                 else offsetTime = 0.1
-                                rendererRef.current.timeOffset = parseFloat((rendererRef.current.timeOffset - offsetTime).toFixed(1));
+                                rendererRef.current.timeOffset = parseFloat((rendererRef.current.timeOffset + offsetTime).toFixed(1));
                                 overlayDisplay.showMessage(renderToString(
-                                    <SubtitlesIcon/>), `자막 싱크: ${offsetTime}초 빠르게 (${rendererRef.current?.timeOffset}초)`);
+                                    <SubtitlesIcon/>), `자막 싱크: ${offsetTime}초 빠르게 (${-rendererRef.current?.timeOffset}초)`);
                             }
                             this.focus();
                             break;
+
                     //  '/' 키 (자막 싱크 초기화)
                         case 191:
                             event.preventDefault();
@@ -450,6 +453,34 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
         newPlayerInstance.on('click', function() {
             newPlayerInstance.focus(); // 클릭 시 플레이어에 포커스 부여
         });
+
+        // 더블클릭 이벤트 수정: 화면 좌/우에 따라 다른 기능 수행
+        // @ts-ignore
+        newPlayerInstance.on('dblclick', function(event) {
+            const overlayDisplay = newPlayerInstance.getChild('OverlayDisplay') as OverlayDisplay;
+
+            // 플레이어 요소의 경계와 클릭 위치 가져오기
+            const playerRect = newPlayerInstance.el().getBoundingClientRect();
+            const clickX = event.clientX;
+
+            // 플레이어의 가로 중앙 지점 계산
+            const midpoint = playerRect.left + playerRect.width / 2;
+
+            if (clickX > midpoint) {
+                // 오른쪽 영역 더블클릭: 10초 앞으로
+                newPlayerInstance.currentTime(newPlayerInstance.currentTime()! + 10);
+                if (overlayDisplay) {
+                    overlayDisplay.showMessage(renderToString(<FastForwardIcon />), '+10초');
+                }
+            } else {
+                // 왼쪽 영역 더블클릭: 10초 뒤로
+                newPlayerInstance.currentTime(newPlayerInstance.currentTime()! - 10);
+                if (overlayDisplay) {
+                    overlayDisplay.showMessage(renderToString(<FastRewindIcon />), '-10초');
+                }
+            }
+        });
+
 
 
         // 플레이어가 준비되면, 자막 및 소스 리스트 선택 준비
@@ -550,7 +581,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
 
                     // 현재 상태를 새로운 ID로 업데이트 (가장 중요)
                     currentActiveSubId = newActiveSubId;
-
                     if (rendererRef.current) {
                         rendererRef.current.freeTrack();
                         if (newActiveSubId) { // 새 자막 ID가 있을 경우에만 setTrackByUrl 호출
@@ -569,6 +599,106 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
         });
 
 
+        // 드래그로 탐색 기능 구현
+        let isDragging = false;
+        let isDoubleTap = false;
+        let startX = 0;
+        let startTime = 0;
+        const playerElement = newPlayerInstance.el();
+
+        let lastTapTime = 0;
+        const DOUBLE_TAP_THRESHOLD = 300;
+
+        const handleMouseDown = (e: Event) => {
+            if (!('clientX' in e || 'touches' in e)) return;
+
+            const currentTime = new Date().getTime();
+            // 더블 탭 일시
+            if (currentTime - lastTapTime < DOUBLE_TAP_THRESHOLD) {
+
+                isDoubleTap = true;
+                isDragging = false;
+
+
+                return
+
+            }
+
+            // 첫 번째 탭/클릭인 경우
+            lastTapTime = currentTime;
+
+            isDragging = true;
+            // @ts-ignore
+            startX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+            startTime = newPlayerInstance.currentTime()!;
+            (playerElement as HTMLElement).style.cursor = 'grabbing';
+        };
+
+        const handleMouseMove = (e: Event) => {
+            if (!isDragging || !('clientX' in e || 'touches' in e)) return;
+
+            // @ts-ignore
+            const currentX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+            const deltaX = currentX - startX;
+            const timeToSeek = deltaX / 5;
+            const newTime = Math.max(0, Math.min(newPlayerInstance.duration()!, startTime + timeToSeek));
+
+            newPlayerInstance.currentTime(newTime);
+
+            const overlayDisplay = newPlayerInstance.getChild('OverlayDisplay') as OverlayDisplay;
+            if (overlayDisplay) {
+                const timeChange = newTime - startTime;
+                const icon = timeChange > 0 ? renderToString(<FastForwardIcon />) : renderToString(<FastRewindIcon />);
+                const text = `${timeChange > 0 ? '+' : ''}${Math.round(timeChange)}초`;
+                overlayDisplay.showMessage(icon, text);
+            }
+        };
+
+        const handleMouseUp = (e: Event) => {
+            const overlayDisplay = newPlayerInstance.getChild('OverlayDisplay') as OverlayDisplay;
+            
+            if (isDoubleTap) {
+
+                // 플레이어 요소의 경계와 클릭 위치 가져오기
+                const playerRect = newPlayerInstance.el().getBoundingClientRect();
+                // @ts-ignore
+
+                // 플레이어의 가로 중앙 지점 계산
+                const midpoint = playerRect.left + playerRect.width / 2;
+
+                if (startX > midpoint) {
+                    // 오른쪽 영역 더블클릭: 10초 앞으로
+                    newPlayerInstance.currentTime(newPlayerInstance.currentTime()! + 10);
+                    if (overlayDisplay) {
+                        overlayDisplay.showMessage(renderToString(<FastForwardIcon />), '+10초');
+                    }
+                } else {
+                    // 왼쪽 영역 더블클릭: 10초 뒤로
+                    newPlayerInstance.currentTime(newPlayerInstance.currentTime()! - 10);
+                    if (overlayDisplay) {
+                        overlayDisplay.showMessage(renderToString(<FastRewindIcon />), '-10초');
+                    }
+                }
+                isDoubleTap = false;
+            }
+            if (isDragging) {
+                isDragging = false;
+                (playerElement as HTMLElement).style.cursor = 'pointer';
+            }
+        };
+
+        // playerElement.addEventListener('mousedown', handleMouseDown);
+        // playerElement.addEventListener('mousemove', handleMouseMove);
+        // playerElement.addEventListener('mouseup', handleMouseUp);
+        // playerElement.addEventListener('mouseleave', handleMouseUp); // 플레이어 영역 밖으로 나가도 드래그 종료
+
+        playerElement.addEventListener('touchstart', handleMouseDown, { passive: true });
+        playerElement.addEventListener('touchmove', handleMouseMove, { passive: true });
+        playerElement.addEventListener('touchend', handleMouseUp);
+        playerElement.addEventListener('touchcancel', handleMouseUp);
+
+
+
         // 오류 이벤트 리스닝
         newPlayerInstance.on('error', () => {
             console.error('Video error:', newPlayerInstance.error());
@@ -580,6 +710,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
         });
 
         newPlayerInstance.on('fullscreenchange', function() {
+
+            // @ts-ignore
+            rendererRef.current!.createCanvas();
             if (newPlayerInstance.isFullscreen()) {
                 // 전체화면 모드 진입 시
                 if (screen.orientation && typeof screen.orientation.lock("landscape") === 'function') {
@@ -603,6 +736,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
         // 자막
 
         return () => {
+            // 드래그 이벤트 리스너 제거
+            // playerElement.removeEventListener('mousedown', handleMouseDown);
+            // playerElement.removeEventListener('mousemove', handleMouseMove);
+            // playerElement.removeEventListener('mouseup', handleMouseUp);
+            // playerElement.removeEventListener('mouseleave', handleMouseUp);
+            playerElement.removeEventListener('touchstart', handleMouseDown);
+            playerElement.removeEventListener('touchmove', handleMouseMove);
+            playerElement.removeEventListener('touchend', handleMouseUp);
+            playerElement.removeEventListener('touchcancel', handleMouseUp);
+
             if (newPlayerInstance && !newPlayerInstance.isDisposed()) {
             try {
                 newPlayerInstance.dispose();

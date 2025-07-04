@@ -57,6 +57,10 @@ declare module "libass-wasm" {
     // 설정 관련
     setLibassMemoryLimit(limit: number): void;
     setLibassGlyphLimit(limit: number): void;
+
+    setCurrentTime(currentTime: any) {
+
+    }
   }
 
   export default SubtitleOctopus;

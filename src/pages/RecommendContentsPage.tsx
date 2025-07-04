@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Box, CircularProgress, Alert } from '@mui/material';
 import RecommendRow from '../components/layouts/RecommendRow';
-import { RecommendContentsResponse, fetchRecommendContents } from '../api/contentsApi.tsx';
+import {
+    RecommendContentsResponse,
+    fetchRecommendContents,
+    FeaturedBannersResponse,
+    fetchFeaturedBanners
+} from '../api/contentsApi.tsx';
 
 const RecommendContentsPage: React.FC = () => {
   const [recommendContents, setRecommendContents] = useState<RecommendContentsResponse[]>([]);
+  const [featuredBanners, setFeaturedBanners] = useState<FeaturedBannersResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchRecommendData = async () => {
       try {
         setLoading(true);
         const data = await fetchRecommendContents();
@@ -22,8 +28,18 @@ const RecommendContentsPage: React.FC = () => {
         setLoading(false);
       }
     };
-    
-    fetchData();
+
+    const fetchFeaturedData = async () => {
+        try {
+            const data = await fetchFeaturedBanners();
+            setFeaturedBanners(data);
+        } catch (error) {
+            console.error('Failed to fetch featured contents:', error);
+            }
+      };
+
+      fetchRecommendData();
+      fetchFeaturedData();
   }, []);
 
   if (loading) {

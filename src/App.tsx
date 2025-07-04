@@ -13,6 +13,7 @@ import MoviePage from "./pages/MoviePage.tsx";
 import WatchPage from "./pages/WatchPage.tsx";
 import RecommendContentsPage from "./pages/RecommendContentsPage.tsx";
 import FollowingPage from "./pages/FollowingPage.tsx";
+import { PopupProvider } from './context/PopupContext.tsx';
 
 function App() {
     return (
@@ -24,7 +25,7 @@ function App() {
                     <Route path="/signup" element={<SignUpPage />} />
 
                     {/*AuthProvider 공유(인증된 사용자만 접근 가능)*/}
-                    <Route element={<AuthProvider> <MainLayout /> </AuthProvider> }>
+                    <Route element={<AuthProvider><PopupProvider><MainLayout /></PopupProvider></AuthProvider>} >
                         <Route path="/main" element={<MainPage />} />
                         <Route path="/test" element={<RecommendContentsPage />} />
                         <Route path="/anime" element={<AnimationPage />} />

@@ -15,10 +15,8 @@ import ListItem from "@mui/material/ListItem";
 import CircularProgress from "@mui/material/CircularProgress";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemButton from "@mui/material/ListItemButton";
-import {TreeFolder} from "../../api/folderApi.tsx";
-import {ContentsResponse} from "../../api/contentsApi.tsx";
-import ContentPopup from "../ContentPopup.tsx";
-import {useContentsData} from "../../hooks/useContentsData.ts";
+import { fetchContentsById } from '../../api/contentsApi';
+import {usePopup} from "../../context/PopupContext.tsx";
 
 const Header: React.FC = () => {
     const theme = useTheme();
@@ -28,29 +26,21 @@ const Header: React.FC = () => {
     const [isFocused, setIsFocused] = useState(false);
     const { searchResults, isLoading } = useSearch(searchTerm);
     const searchInputRef = useRef<HTMLDivElement>(null);
-    const [selectedContentsId, setSelectedContentsId] = useState<number | null>(null);
-    const [popupItem, setPopupItem] = useState<ContentsResponse | null>(null);
-    const { contentsData, contentsLoading, contentsError } = useContentsData(selectedContentsId);
     const popperRef = useRef<HTMLDivElement>(null);
+    const { showPopup } = usePopup();
 
-    const handleResultClick = (resultId: number) => {
-        // 결과 항목 클릭 시 로직 (예: 해당 상세 페이지로 이동)
-        // navigate(`/items/${resultId}`);
-        // setSearchTerm(''); // 검색창 비우기
-        setIsFocused(false);
-        setSelectedContentsId(resultId);
-    };
-
-    useEffect(() => {
-        if (contentsData && !contentsLoading) {
-            setPopupItem(contentsData);
+    const handleResultClick = async (resultId: number) => {
+        setIsFocused(false); // 팝업 닫기
+        try {
+            // 클릭 시점에 직접 API를 호출하여 최신 데이터를 가져옵니다.
+            const data = await fetchContentsById(resultId);
+            if (data) {
+                showPopup(data);
+            }
+        } catch (error) {
+            console.error("Error fetching contents data:", error);
+            // 에러 처리 로직 (예: 사용자에게 알림)
         }
-    }, [contentsData, contentsLoading]);
-
-
-    const closePopup = () => {
-        setPopupItem(null);
-        setSelectedContentsId(null);
     };
 
     const handleBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
@@ -177,19 +167,6 @@ const Header: React.FC = () => {
                     </IconButton>
                 </Grid>
             </Grid>
-            {popupItem && (
-                <ContentPopup
-                    open={Boolean(popupItem)}
-                    onClose={closePopup}
-                    title={popupItem.title}
-                    description={popupItem.description}
-                    posterUrl={popupItem.posterUrl}
-                    onWatchClick={(id: number) => {
-                        window.location.href = `/watch/${id}`;
-                    }}
-                    contentsId={popupItem.contentsId}
-                />
-            )}
         </>
     );
 };

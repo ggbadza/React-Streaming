@@ -45,6 +45,19 @@ export interface ContentsSearchResult {
      modifiedAt: string;
 }
 
+export interface FeaturedBannersResponse {
+    sequenceId: number;
+    contentsId: number;
+    title: string;
+    description: string;
+    type: string;
+    userRating: number;
+    posterUrl: string;
+    thumbnailUrl: string;
+    seriesId: string;
+    season: string;
+}
+
 // 추천 컨텐츠 데이터를 불러오는 함수
 export const fetchRecommendContents = async (): Promise<RecommendContentsResponse[]> => {
     const response = await axiosClient.get('/contents/recommend');
@@ -119,5 +132,10 @@ export const fetchDeleteFollowing = async (contentsId: number): Promise<boolean>
 
 export const fetchFollowingContents = async (): Promise<ContentsResponse[]> => {
     const response = await axiosClient.get('/contents/get_following', {});
+    return response.data;
+};
+
+export const fetchFeaturedBanners = async (): Promise<FeaturedBannersResponse[]> => {
+    const response = await axiosClient.get('/contents/get_featured_banners', {});
     return response.data;
 };

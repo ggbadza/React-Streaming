@@ -6,11 +6,14 @@ import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
 import MobileSidebar from './MobileSidebar.tsx';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { usePopup } from '../../context/PopupContext';
+import ContentPopup from '../ContentPopup';
 
 const MainLayout = () => {
 
     const theme = useTheme();  // 테마 가져오기
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const { popupContent, hidePopup } = usePopup();
 
     const sidebarWidth = theme.spacing(7);
     const headerHeight = '60px';
@@ -55,6 +58,19 @@ const MainLayout = () => {
             >
                 <Outlet />
             </Box>
+            {popupContent && (
+                <ContentPopup
+                    open={true}
+                    onClose={hidePopup}
+                    title={popupContent.title}
+                    description={popupContent.description}
+                    posterUrl={popupContent.posterUrl}
+                    onWatchClick={(id: number) => {
+                        window.location.href = `/watch/${id}`;
+                    }}
+                    contentsId={popupContent.contentsId}
+                />
+            )}
         </Box>
     );
 };

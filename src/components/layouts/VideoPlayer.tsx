@@ -711,8 +711,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
 
         newPlayerInstance.on('fullscreenchange', function() {
 
-            // @ts-ignore
-            rendererRef.current!.createCanvas();
+            // 타이밍 이슈를 피하기 위해 setTimeout 사용
+            setTimeout(function() {
+                if (rendererRef.current) {
+
+                    rendererRef.current.setCurrentTime(0);
+                    setTimeout(function() {
+                        if (rendererRef.current) {
+                            // @ts-ignore
+                            const currentTime = videoRef.current!.currentTime; // video.js 플레이어의 현재 시간
+                            const offsetTime = rendererRef.current.timeOffset;
+                            rendererRef.current.setCurrentTime(currentTime+offsetTime);
+                        }
+                    }, 100); // 100~150ms 정도로 넉넉하게 설정
+
+                }
+            }, 100); // 100~150ms 정도로 넉넉하게 설정
+
             if (newPlayerInstance.isFullscreen()) {
                 // 전체화면 모드 진입 시
                 if (screen.orientation && typeof screen.orientation.lock("landscape") === 'function') {

@@ -5,6 +5,8 @@ import { Paper, Box, Typography } from '@mui/material';
 import RatingGauge from "./RatingGauge.tsx";
 import {FeaturedBannersResponse, fetchContentsById} from "../api/contentsApi.tsx";
 import {usePopup} from "../context/PopupContext.tsx";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import {useTheme} from "@mui/material/styles";
 
 interface CarouselItemProps {
     item: {
@@ -23,6 +25,10 @@ interface CarouselItemProps {
 
 
 const Item: React.FC<CarouselItemProps> = ({ item }) => {
+
+    const theme = useTheme();  // 테마 가져오기
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
     const { showPopup } = usePopup();
 
     const handleResultClick = async () => {
@@ -40,7 +46,7 @@ const Item: React.FC<CarouselItemProps> = ({ item }) => {
 
     return (
         <Paper
-            elevation={4}
+            elevation={0}
             onClick={handleResultClick}
             sx={{
                 position: 'relative', // 자식 요소의 absolute 포지셔닝 기준
@@ -50,8 +56,8 @@ const Item: React.FC<CarouselItemProps> = ({ item }) => {
                 // width: '100%',
                 height: '35VW',
                 // aspectRatio: '3 / 1',
-                // overflow: 'hidden', // Paper 경계를 넘어가는 요소 숨김
-                overflowY: 'visible', overflowX: 'clip',
+                overflow: 'hidden', // Paper 경계를 넘어가는 요소 숨김
+                // overflowY: 'visible', overflowX: 'clip',
                 pl: '40%', // 왼쪽 콘텐츠 영역 확보 (포스터 너비 + 여백)
                 pr: 4,
                 py: 4,
@@ -71,7 +77,9 @@ const Item: React.FC<CarouselItemProps> = ({ item }) => {
                     backgroundPosition: 'right',
 
                     // 블러 효과 및 밝기 조절
-                    filter: 'blur(8px) brightness(0.7)',
+                    filter: 'blur(8px) brightness(0.3)',
+                    // maskImage: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)',
+
                 },
 
                 // 3. 자식 요소들이 가상요소 위에 오도록 position과 z-index 설정
@@ -104,30 +112,60 @@ const Item: React.FC<CarouselItemProps> = ({ item }) => {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
-                alignItems: 'center',
-                width: '50%',
+                alignItems: 'flex-start', // 중앙 정렬에서 왼쪽 정렬로 변경
+                width: {xs:'90%',sm:'50%'},
                 height: '100%',
                 gap: 1.5, // 요소 간 간격
             }}>
                 {/* 2-1. 이름 */}
-                <Typography variant="h4" component="h2" sx={{ fontWeight: 'bold', lineHeight: 1.2, fontSize: '2.5rem' }}>
+                <Typography
+                    variant="h4"
+                    component="h2"
+                    sx={{
+                        fontWeight: 'bold',
+                        lineHeight: 1.2,
+                        fontSize: {
+                            xs: '1.8rem',
+                            sm: '2.2rem',
+                            md: '2.5rem',
+                        },
+                        xs:{
+                            display: '-webkit-box',
+                            '-webkit-line-clamp': '3',
+                            '-webkit-box-orient': 'vertical',
+                        },
+                        color: '#FFFFFF',
+                        textAlign: 'left',
+                    }}
+                >
                     {item.title}
                 </Typography>
 
                 {/* 2-2. 사용자 평점 */}
-                <RatingGauge value={item.userRating} />
+                <RatingGauge value={item.userRating} color="#FFFFFF" />
+
+                {/* "개요" 텍스트 추가 */}
+                {!isMobile && item.description && (
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#FFFFFF' }}>
+                        개요
+                    </Typography>
+                )}
 
                 {/* 2-3. 설명 */}
-                <Typography variant="body1" color="text.secondary" sx={{
-                    // 여러 줄의 텍스트를 자르고 ...으로 표시
-                    display: '-webkit-box',
-                    '-webkit-line-clamp': '3',
-                    '-webkit-box-orient': 'vertical',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                }}>
-                    {item.description}
-                </Typography>
+                {!isMobile && item.description && (
+                    <Typography variant="body1" sx={{
+                        // 여러 줄의 텍스트를 자르고 ...으로 표시
+                        display: '-webkit-box',
+                        '-webkit-line-clamp': '3',
+                        '-webkit-box-orient': 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        color: '#FFFFFF', // 흰색으로 고정
+                        textAlign: 'left' // 텍스트 왼쪽 정렬 추가
+                    }}>
+                        {item.description}
+                    </Typography>
+                )}
             </Box>
         </Paper>
     );

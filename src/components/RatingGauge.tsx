@@ -1,8 +1,7 @@
 import React from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
-import CarouselComponent from "./Carousel.tsx";
 
-const RatingGauge: React.FC<{ value: number }> = ({ value }) => {
+const RatingGauge: React.FC<{ value: number, color?: string }> = ({ value, color }) => {
     const percentage = value * 10; // 10점 만점을 100% 기준으로 변환
 
     return (
@@ -13,8 +12,10 @@ const RatingGauge: React.FC<{ value: number }> = ({ value }) => {
                     value={percentage}
                     size={50}
                     sx={{
-                        color: (theme) =>
-                            percentage > 70 ? theme.palette.success.main : percentage > 40 ? theme.palette.warning.main : theme.palette.error.main,
+                        // 칼라 존재 시 테마색이 아닌 칼라를 쓰도록
+                        color: ((theme) =>
+                                percentage > 70 ? theme.palette.success.main : percentage > 40 ? theme.palette.warning.main : theme.palette.error.main
+                        ),
                     }}
                 />
                 <Box
@@ -29,12 +30,11 @@ const RatingGauge: React.FC<{ value: number }> = ({ value }) => {
                         justifyContent: 'center',
                     }}
                 >
-                    <Typography variant="caption" component="div" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+                    <Typography variant="caption" component="div" color="text.secondary" sx={{ fontWeight: 'bold',color: {color} }}>
                         {`${Math.round(percentage)}%`}
                     </Typography>
                 </Box>
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{value.toFixed(1)}</Typography>
         </Box>
     );
 };

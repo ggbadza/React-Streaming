@@ -65,23 +65,23 @@ const ContentCard: React.FC<ContentCardProps> = ({ cardImage, title, type, onCli
                             onMouseEnter={() => isTextOverflowing && setIsHovered(true)}
                             onMouseLeave={() => isTextOverflowing && setIsHovered(false)}>
                 {/* 콘텐츠 타입 */}
-                {type && (
-                    <Box
-                        sx={{
-                            position: 'absolute',
-                            top: 8,
-                            left: 8,
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                            color: '#fff',
-                            padding: '2px 6px',
-                            borderRadius: 1,
-                            fontSize: 12,
-                            zIndex: 2,
-                        }}
-                    >
-                        {type}
-                    </Box>
-                )}
+                {/*{type && (*/}
+                {/*    <Box*/}
+                {/*        sx={{*/}
+                {/*            position: 'absolute',*/}
+                {/*            top: 8,*/}
+                {/*            left: 8,*/}
+                {/*            backgroundColor: 'rgba(0, 0, 0, 0.7)',*/}
+                {/*            color: '#fff',*/}
+                {/*            padding: '2px 6px',*/}
+                {/*            borderRadius: 1,*/}
+                {/*            fontSize: 12,*/}
+                {/*            zIndex: 2,*/}
+                {/*        }}*/}
+                {/*    >*/}
+                {/*        {type}*/}
+                {/*    </Box>*/}
+                {/*)}*/}
 
                 {/* 썸네일 */}
                 <CardMedia

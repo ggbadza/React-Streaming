@@ -125,13 +125,14 @@ const Item: React.FC<CarouselItemProps> = ({ item }) => {
                         fontWeight: 'bold',
                         lineHeight: 1.2,
                         fontSize: {
-                            xs: '1.8rem',
+                            xs: '1.2rem',
                             sm: '2.2rem',
                             md: '2.5rem',
+                            lg: '3.0rem'
                         },
                         xs:{
                             display: '-webkit-box',
-                            '-webkit-line-clamp': '3',
+                            '-webkit-line-clamp': '2',
                             '-webkit-box-orient': 'vertical',
                         },
                         color: '#FFFFFF',
@@ -158,6 +159,13 @@ const Item: React.FC<CarouselItemProps> = ({ item }) => {
                         display: '-webkit-box',
                         '-webkit-line-clamp': '3',
                         '-webkit-box-orient': 'vertical',
+
+                        fontSize: {
+                            xs: '0.8rem',
+                            sm: '0.8rem',
+                            md: '0.9rem',
+                            lg: '1.0rem'
+                        },
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         color: '#FFFFFF', // 흰색으로 고정
@@ -180,7 +188,7 @@ const CarouselComponent: React.FC<{items: FeaturedBannersResponse[]}> = ({items}
                 overflowX: 'clip' ,
                 // aspectRatio: '3 / 1',
             }}
-            navButtonsAlwaysVisible={true}>
+            navButtonsAlwaysVisible={false}>
             {
                 items.map((item) => <Item key={item.sequenceId} item={item} />)
             }

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
 
 const RatingGauge: React.FC<{ value: number, color?: string }> = ({ value, color }) => {
     const percentage = value * 10; // 10점 만점을 100% 기준으로 변환
@@ -7,16 +8,36 @@ const RatingGauge: React.FC<{ value: number, color?: string }> = ({ value, color
     return (
         <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ position: 'relative' }}>
-                <CircularProgress
-                    variant="determinate"
+                <Gauge
+                    cornerRadius="50%"
                     value={percentage}
-                    size={50}
-                    sx={{
-                        // 칼라 존재 시 테마색이 아닌 칼라를 쓰도록
-                        color: ((theme) =>
-                                percentage > 70 ? theme.palette.success.main : percentage > 40 ? theme.palette.warning.main : theme.palette.error.main
-                        ),
-                    }}
+                    sx={(theme) => ({
+
+                        width: { xs: 60, sm: 80 },
+                        height: { xs: 60, sm: 80 },
+                        // 값(%)에 따라 게이지(valueArc)의 fill 색상을 동적으로 변경
+                        [`& .${gaugeClasses.valueArc}`]: {
+                            fill:
+                                percentage > 70
+                                    ? theme.palette.success.main
+                                    : percentage > 40
+                                        ? theme.palette.warning.main
+                                        : theme.palette.error.main,
+                        },
+                        [`& .${gaugeClasses.valueText}`]: {
+                            fontSize: {
+                                xs: '18px',
+                                sm: '25px'},
+                            fontWeight: 'bold'
+                        },
+                        [`& .${gaugeClasses.valueText} text`]: {
+                            fill: '#FFFFFF',
+                        },
+                        // 배경이 되는 회색 원(referenceArc) 스타일
+                        [`& .${gaugeClasses.referenceArc}`]: {
+                            fill: '#E0E0E0',
+                        },
+                    })}
                 />
                 <Box
                     sx={{
@@ -30,8 +51,8 @@ const RatingGauge: React.FC<{ value: number, color?: string }> = ({ value, color
                         justifyContent: 'center',
                     }}
                 >
-                    <Typography variant="caption" component="div" color="text.secondary" sx={{ fontWeight: 'bold',color: {color} }}>
-                        {`${Math.round(percentage)}%`}
+                    <Typography variant="caption" component="div" color="text.secondary" sx={{ fontWeight: 'bold',color: '#FFFFFF' }}>
+                        {`%`}
                     </Typography>
                 </Box>
             </Box>

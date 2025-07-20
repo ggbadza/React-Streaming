@@ -13,6 +13,36 @@ const RecommendRow: React.FC<RecommendRowProps> = ({ description, contentsList }
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [hasDragged, setHasDragged] = useState(false);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    setIsDragging(true);
+    setHasDragged(false);
+    setStartX(e.touches[0].pageX - containerRef.current.offsetLeft);
+    setScrollLeft(containerRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isDragging || !containerRef.current) return;
+    setHasDragged(true);
+    const x = e.touches[0].pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // Adjust scroll speed
+    containerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleClickCapture = (e: React.MouseEvent) => {
+    if (hasDragged) {
+      e.stopPropagation();
+    }
+  };
 
   const checkScrollNeeded = () => {
       const container = containerRef.current;
@@ -193,17 +223,24 @@ const RecommendRow: React.FC<RecommendRowProps> = ({ description, contentsList }
         ref={containerRef}
         sx={{
           display: 'flex',
-            overflow: 'hidden',        // auto → hidden으로 변경
+          overflow: 'hidden',        // auto → hidden으로 변경
           gap: 2,
           pl: 2,
           pr: 2,
           paddingY: 1,
           height: '100%',  // 제목 높이 제외
+          cursor: 'grab',
+          userSelect: 'none',
         }}
         onScroll={(e) => {
           const target = e.target as HTMLElement;
           setShowLeftArrow(target.scrollLeft > 0);
+          checkScrollNeeded();
         }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClickCapture={handleClickCapture}
       >
         {contentsList.map((content) => (
           <Box key={content.contentsId}
@@ -259,3 +296,4 @@ const RecommendRow: React.FC<RecommendRowProps> = ({ description, contentsList }
 };
 
 export default RecommendRow;
+""

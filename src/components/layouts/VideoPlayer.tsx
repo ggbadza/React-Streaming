@@ -606,6 +606,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
         let startTime = 0;
         const playerElement = newPlayerInstance.el();
 
+        let startY = 0; // Y축 시작점
+        let isDragDirectionDetermined = false; // 드래그 방향이 결정되었는지 여부
+        let dragDirection = ''; // 'horizontal' 또는 'vertical'
+        const DRAG_THRESHOLD = 30; // 드래그 감지를 시작할 최소 이동 거리 (픽셀 단위)
+
         let lastTapTime = 0;
         const DOUBLE_TAP_THRESHOLD = 300;
 
@@ -630,6 +635,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
             isDragging = true;
             // @ts-ignore
             startX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+            // @ts-ignore
+            startY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+            isDragDirectionDetermined = false;
+            dragDirection = '';
             startTime = newPlayerInstance.currentTime()!;
             (playerElement as HTMLElement).style.cursor = 'grabbing';
         };
@@ -639,18 +648,61 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
 
             // @ts-ignore
             const currentX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+            // @ts-ignore
+            const currentY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
             const deltaX = currentX - startX;
-            const timeToSeek = deltaX / 5;
-            const newTime = Math.max(0, Math.min(newPlayerInstance.duration()!, startTime + timeToSeek));
-
-            newPlayerInstance.currentTime(newTime);
+            const deltaY = currentY - startY;
 
             const overlayDisplay = newPlayerInstance.getChild('OverlayDisplay') as OverlayDisplay;
-            if (overlayDisplay) {
-                const timeChange = newTime - startTime;
-                const icon = timeChange > 0 ? renderToString(<FastForwardIcon />) : renderToString(<FastRewindIcon />);
-                const text = `${timeChange > 0 ? '+' : ''}${Math.round(timeChange)}초`;
-                overlayDisplay.showMessage(icon, text);
+
+            // 드래그 방향 결정 로직
+            if (!isDragDirectionDetermined) {
+                // 수평 또는 수직 이동이 임계값을 넘었는지 확인
+                if (Math.abs(deltaX) > DRAG_THRESHOLD) {
+                    dragDirection = 'horizontal';
+                    isDragDirectionDetermined = true;
+                } else if (Math.abs(deltaY) > DRAG_THRESHOLD) {
+                    dragDirection = 'vertical';
+                    isDragDirectionDetermined = true;
+                }
+            }
+
+            //  결정된 방향에 따라 기능 수행
+            if (isDragDirectionDetermined) {
+                if (dragDirection === 'horizontal') {
+                    // 수평 드래그: 시간 탐색
+                    const timeToSeek = deltaX / 5;
+                    const newTime = Math.max(0, Math.min(newPlayerInstance.duration()!, startTime + timeToSeek));
+                    newPlayerInstance.currentTime(newTime);
+
+                    if (overlayDisplay) {
+                        const timeChange = newTime - startTime;
+                        const icon = timeChange > 0 ? renderToString(<FastForwardIcon />) : renderToString(<FastRewindIcon />);
+                        const text = `${timeChange > 0 ? '+' : ''}${Math.round(timeChange)}초`;
+                        overlayDisplay.showMessage(icon, text);
+                    }
+                } else if (dragDirection === 'vertical') {
+                    // 수직 드래그: 볼륨 조절 (신규 기능)
+                    // 위로 올리면 볼륨 증가, 아래로 내리면 감소
+                    const volumeChange = -deltaY / 200; // 민감도 조절
+                    let newVolume = newPlayerInstance.volume()! + volumeChange;
+                    newVolume = Math.max(0, Math.min(1, newVolume)); // 0과 1 사이로 제한
+                    newPlayerInstance.volume(newVolume);
+
+                    if (newPlayerInstance.muted() && newVolume > 0) {
+                        newPlayerInstance.muted(false);
+                    } else if (newVolume === 0) {
+                        newPlayerInstance.muted(true);
+                    }
+
+                    if (overlayDisplay) {
+                        const icon = newVolume > 0.5 ? renderToString(<VolumeUpIcon />) : (newVolume > 0 ? renderToString(<VolumeDownIcon />) : renderToString(<VolumeOffIcon />));
+                        overlayDisplay.showMessage(icon, `볼륨: ${Math.round(newVolume * 100)}%`);
+                    }
+
+                    // Y 시작점을 현재 위치로 재설정하여 연속적인 볼륨 조절이 가능하도록 함
+                    startY = currentY;
+                }
             }
         };
 
@@ -683,6 +735,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
             }
             if (isDragging) {
                 isDragging = false;
+                isDragDirectionDetermined = false;
+                dragDirection = '';
                 (playerElement as HTMLElement).style.cursor = 'pointer';
             }
         };

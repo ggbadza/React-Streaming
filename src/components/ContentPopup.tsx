@@ -132,7 +132,7 @@ const ContentPopup: React.FC<ContentPopupProps> = ({open, onClose, title, descri
                                     팔로잉
                                 </Button>
                             </Box>
-                            <Typography variant="body2" gutterBottom sx={{ textAlign: 'left' }}>
+                            <Typography variant="body2" gutterBottom sx={{ textAlign: 'left' , whiteSpace: 'pre-line' }}>
                                 {description}
                             </Typography>
 

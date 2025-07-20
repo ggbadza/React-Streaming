@@ -51,9 +51,9 @@ const RatingGauge: React.FC<{ value: number, color?: string }> = ({ value, color
                         justifyContent: 'center',
                     }}
                 >
-                    <Typography variant="caption" component="div" color="text.secondary" sx={{ fontWeight: 'bold',color: '#FFFFFF' }}>
-                        {`%`}
-                    </Typography>
+                    {/*<Typography variant="caption" component="div" color="text.secondary" sx={{ fontWeight: 'bold',color: '#FFFFFF' }}>*/}
+                    {/*    {`%`}*/}
+                    {/*</Typography>*/}
                 </Box>
             </Box>
         </Box>

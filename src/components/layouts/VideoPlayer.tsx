@@ -221,6 +221,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
 
         let newRate;
         let newVolume;
+        const initialSources = import.meta.env.VITE_USE_MOCK === 'true' && sources.length > 0
+            ? sources.map((source) => ({
+                src: source.url,
+                type: source.type,
+            }))
+            : [
+                {
+                    src: `${API_URL}/video/filerange?fileId=${fileId}`,
+                    type: 'video/mp4',
+                },
+                {
+                    src: `${API_URL}/video/hls_m3u8_ts?fileId=${fileId}&type=0`,
+                    type: 'application/vnd.apple.mpegurl',
+                },
+            ];
 
         const options = {
             autoplay: false,
@@ -405,15 +420,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ fileId, sources, subtitleMeta
                 nativeVideoTracks: false
             },
             liveui: true,
-            sources: [
-                {
-                src: `${API_URL}/video/filerange?fileId=${fileId}`,
-                type: 'video/mp4'
-                },
-                {
-                src: `${API_URL}/video/hls_m3u8_ts?fileId=${fileId}&type=0`,
-                type: 'application/vnd.apple.mpegurl' // 두 번째 소스: HLS (m3u8)
-                }]
+            sources: initialSources
         };
 
         // 플레이어 인스턴스 생성

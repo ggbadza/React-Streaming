@@ -1,9 +1,15 @@
 import axios from 'axios';
+import { mockAxiosAdapter } from '../mocks/mockAxiosAdapter';
 
 const axiosClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     withCredentials: true, // 인증 쿠키 자동 전송
 });
+
+if (import.meta.env.VITE_USE_MOCK === 'true') {
+    axiosClient.defaults.adapter = mockAxiosAdapter;
+    console.info('[mock] API mock mode is enabled.');
+}
 
 interface FailedRequestQueueItem {
     resolve: (value?: unknown) => void;
